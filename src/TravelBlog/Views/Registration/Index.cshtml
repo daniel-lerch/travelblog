@@ -1,0 +1,30 @@
+﻿@model RegistrationViewModel
+@{
+    ViewData["Title"] = "Registrierung";
+}
+
+<h1>Registrierung</h1>
+
+@if (!string.IsNullOrWhiteSpace(Model.DisplayMessage))
+{
+    <div class="alert alert-warning">
+        @Model.DisplayMessage
+    </div>
+}
+
+<form action="~/register" method="post">
+    <div class="form-group">
+        <label for="givenname">Vorname</label>
+        <input type="text" class="form-control" id="givenname" name="givenname" value="@Model.GivenName" required autocomplete="given-name" />
+    </div>
+    <div class="form-group">
+        <label for="familyname">Nachname</label>
+        <input type="text" class="form-control" id="familyname" name="familyname" value="@Model.FamilyName" required autocomplete="family-name" />
+    </div>
+    <div class="form-group">
+        <label for="mailaddress">E-Mail-Adresse</label>
+        <input type="email" class="form-control" id="mailaddress" name="mailaddress" value="@Model.MailAddress" required autocomplete="email" />
+        <small class="form-text text-muted">Ihre E-Mail-Adresse wird ausschließlich für diesen Newsletter verwendet und nicht an Dritte weitergeben.</small>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrieren</button>
+</form>
