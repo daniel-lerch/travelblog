@@ -32,11 +32,12 @@ namespace TravelBlog.Database
             base.OnModelCreating(modelBuilder);
 
             var subscriber = modelBuilder.Entity<Subscriber>();
-            subscriber.HasKey(u => u.Id);
-            subscriber.HasAlternateKey(u => u.MailAddress);
-            subscriber.Property(u => u.MailAddress).IsRequired();
-            subscriber.Property(u => u.GivenName).IsRequired();
-            subscriber.Property(u => u.FamilyName).IsRequired();
+            subscriber.HasKey(s => s.Id);
+            subscriber.HasAlternateKey(s => s.MailAddress);
+            subscriber.HasAlternateKey(s => s.Token);
+            subscriber.Property(s => s.MailAddress).IsRequired();
+            subscriber.Property(s => s.GivenName).IsRequired();
+            subscriber.Property(s => s.FamilyName).IsRequired();
         }
     }
 }
