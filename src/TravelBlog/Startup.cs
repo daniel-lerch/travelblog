@@ -35,6 +35,12 @@ namespace TravelBlog
             });
 
             services.AddDbContext<DatabaseContext>();
+            services.AddAuthentication(Constants.AdminCookieScheme)
+                .AddCookie(Constants.AdminCookieScheme, options =>
+                {
+                    options.LoginPath = "/admin/login";
+                    options.ReturnUrlParameter = "redirect";
+                });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -53,6 +59,7 @@ namespace TravelBlog
             app.UseMigrations();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {

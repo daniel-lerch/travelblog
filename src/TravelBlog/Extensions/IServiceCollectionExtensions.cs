@@ -17,6 +17,9 @@ namespace TravelBlog.Extensions
             services.AddOptions<DatabaseOptions>()
                 .Bind(configuration.GetSection("Database"))
                 .ValidateDataAnnotations();
+            services.AddOptions<SiteOptions>()
+                .Bind(configuration.GetSection("Site"))
+                .ValidateDataAnnotations();
 
             return services;
         }

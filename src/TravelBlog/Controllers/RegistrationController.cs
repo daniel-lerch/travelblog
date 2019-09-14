@@ -42,6 +42,7 @@ namespace TravelBlog.Controllers
             {
                 if (ex.IsUniqueConstraintViolation())
                     return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Diese E-Mail-Adresse ist bereits registriert."));
+                else throw;
             }
             return View("Success", new RegistrationViewModel(mailAddress, givenName, familyName));
         }
