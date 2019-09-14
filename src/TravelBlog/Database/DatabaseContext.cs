@@ -13,7 +13,7 @@ namespace TravelBlog.Database
     {
         private readonly IOptions<DatabaseOptions> options;
 
-        public DbSet<User> Users { get; set; }
+        public DbSet<Subscriber> Subscribers { get; set; }
 
         public DatabaseContext(IOptions<DatabaseOptions> options)
         {
@@ -31,12 +31,12 @@ namespace TravelBlog.Database
         {
             base.OnModelCreating(modelBuilder);
 
-            var user = modelBuilder.Entity<User>();
-            user.HasKey(u => u.Id);
-            user.HasAlternateKey(u => u.MailAddress);
-            user.Property(u => u.MailAddress).IsRequired();
-            user.Property(u => u.GivenName).IsRequired();
-            user.Property(u => u.FamilyName).IsRequired();
+            var subscriber = modelBuilder.Entity<Subscriber>();
+            subscriber.HasKey(u => u.Id);
+            subscriber.HasAlternateKey(u => u.MailAddress);
+            subscriber.Property(u => u.MailAddress).IsRequired();
+            subscriber.Property(u => u.GivenName).IsRequired();
+            subscriber.Property(u => u.FamilyName).IsRequired();
         }
     }
 }

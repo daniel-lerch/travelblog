@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace TravelBlog.Database.Entities
 {
-    public class User
+    public class Subscriber
     {
         public int Id { get; set; }
         public string MailAddress { get; set; }
