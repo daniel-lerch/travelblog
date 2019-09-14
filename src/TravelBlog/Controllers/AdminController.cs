@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TravelBlog.Configuration;
+using TravelBlog.Database;
+using TravelBlog.Database.Entities;
+using TravelBlog.Models;
 
 namespace TravelBlog.Controllers
 {
@@ -15,10 +19,12 @@ namespace TravelBlog.Controllers
     public class AdminController : Controller
     {
         private readonly IOptions<SiteOptions> options;
+        private readonly DatabaseContext database;
 
-        public AdminController(IOptions<SiteOptions> options)
+        public AdminController(IOptions<SiteOptions> options, DatabaseContext database)
         {
             this.options = options;
+            this.database = database;
         }
 
         [HttpGet]
@@ -52,9 +58,31 @@ namespace TravelBlog.Controllers
         }
 
         [Authorize]
-        public IActionResult Index()
+        public async Task<IActionResult> Index([FromQuery] string status)
         {
-            return View();
+            var pending = await database.Subscribers.Where(s => s.ConfirmationTime == default).OrderBy(s => s.FamilyName).ToListAsync();
+            var confirmed = await database.Subscribers.Where(s => s.ConfirmationTime != default).OrderBy(s => s.FamilyName).ToListAsync();
+            return View(new AdminViewModel(pending, confirmed, status));
+        }
+
+        public async Task<IActionResult> Confirm([FromQuery] int id)
+        {
+            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
+            if (subscriber == null)
+                return Redirect("~/admin?status=error");
+            subscriber.ConfirmationTime = DateTime.Now;
+            await database.SaveChangesAsync();
+            return Redirect("~/admin?status=success");
+        }
+
+        public async Task<IActionResult> Delete([FromQuery] int id)
+        {
+            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
+            if (subscriber == null)
+                return Redirect("~/admin?status=error");
+            database.Subscribers.Remove(subscriber);
+            await database.SaveChangesAsync();
+            return Redirect("~/admin?status=success");
         }
     }
 }
