@@ -50,6 +50,7 @@ namespace TravelBlog
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            app.UseMigrations();
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
