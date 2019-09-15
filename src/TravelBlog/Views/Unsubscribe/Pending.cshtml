@@ -1,0 +1,15 @@
+﻿@model UnsubscribeViewModel
+@{
+    ViewData["Title"] = "E-Mails abbestellen";
+}
+
+<h1>E-Mails abbestellen</h1>
+
+<p>
+    Hey @Model.Subscriber.GivenName,<br />
+    willst du wirklich keine E-Mails zu neuen Einträgen auf diesem Blog mehr bekommen und damit auch den Zugang dazu verlieren?
+</p>
+
+<form action="" method="post">
+    <button type="submit" class="btn btn-primary">Abbestellen</button>
+</form>
