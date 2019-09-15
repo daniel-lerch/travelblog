@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TravelBlog.Database;
 using TravelBlog.Extensions;
+using TravelBlog.Services;
 
 namespace TravelBlog
 {
@@ -35,6 +36,7 @@ namespace TravelBlog
             });
 
             services.AddDbContext<DatabaseContext>();
+            services.AddSingleton<MailingService>();
             services.AddAuthentication(Constants.AdminCookieScheme)
                 .AddCookie(Constants.AdminCookieScheme, options =>
                 {

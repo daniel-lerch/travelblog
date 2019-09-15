@@ -12,6 +12,7 @@ using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Models;
+using TravelBlog.Services;
 
 namespace TravelBlog.Controllers
 {
@@ -20,11 +21,13 @@ namespace TravelBlog.Controllers
     {
         private readonly IOptions<SiteOptions> options;
         private readonly DatabaseContext database;
+        private readonly MailingService mailer;
 
-        public AdminController(IOptions<SiteOptions> options, DatabaseContext database)
+        public AdminController(IOptions<SiteOptions> options, DatabaseContext database, MailingService mailer)
         {
             this.options = options;
             this.database = database;
+            this.mailer = mailer;
         }
 
         [HttpGet]
@@ -72,6 +75,14 @@ namespace TravelBlog.Controllers
                 return Redirect("~/admin?status=error");
             subscriber.ConfirmationTime = DateTime.Now;
             await database.SaveChangesAsync();
+
+            string mail = $"Hey {subscriber.GivenName},\r\n" +
+                $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n" +
+                $"Ab sofort wirst du per E-Mail über neue Einträge informiert.";
+            string name = subscriber.GivenName + ' ' + subscriber.FamilyName;
+            string url = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Content("~/unsubscribe?token=" + subscriber.Token)}";
+            await mailer.SendMailAsync(name, subscriber.MailAddress, "Erfolgreich registriert", mail, url);
+
             return Redirect("~/admin?status=success");
         }
 

@@ -8,5 +8,7 @@ namespace TravelBlog.Configuration
     public class TravelBlogOptions
     {
         public DatabaseOptions DatabaseOptions { get; set; }
+        public MailingOptions MailingOptions { get; set; }
+        public SiteOptions SiteOptions { get; set; }
     }
 }
