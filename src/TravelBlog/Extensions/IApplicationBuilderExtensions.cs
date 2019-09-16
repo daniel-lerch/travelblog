@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace TravelBlog.Extensions
             using (var scope = app.ApplicationServices.CreateScope())
             using (DatabaseContext context = scope.ServiceProvider.GetService<DatabaseContext>())
             {
-                context.Database.EnsureCreated();
+                context.Database.Migrate();
             }
 
             return app;
