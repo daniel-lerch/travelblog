@@ -9,9 +9,10 @@
 @if (showBanner)
 {
     <div id="cookieConsent" class="alert alert-info alert-dismissible fade show" role="alert">
-        Use this space to summarize your privacy and cookie use policy. <a asp-area="" asp-controller="Home" asp-action="Privacy">Learn More</a>.
+        Diese Seite verwendet ausschließlich Cookies, die zum Betrieb zwingend erforderlich sind.
+        Es werden keinerlei personenbezogene Daten an Dritte weitergegeben.
         <button type="button" class="accept-policy close" data-dismiss="alert" aria-label="Close" data-cookie-string="@cookieString">
-            <span aria-hidden="true">Accept</span>
+            <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <script>
