@@ -26,6 +26,9 @@ namespace TravelBlog.Extensions
                     ValidationContext context = new ValidationContext(options);
                     return Validator.TryValidateObject(options, context, null);
                 });
+            services.AddOptions<ProxyOptions>()
+                .Bind(configuration.GetSection("Proxy"))
+                .ValidateDataAnnotations();
             services.AddOptions<SiteOptions>()
                 .Bind(configuration.GetSection("Site"))
                 .ValidateDataAnnotations();

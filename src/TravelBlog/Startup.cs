@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,11 +27,6 @@ namespace TravelBlog
         public void ConfigureServices(IServiceCollection services)
         {
             services.ConfigureTravelBlog(Configuration);
-
-            services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.All;
-            });
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -65,9 +59,7 @@ namespace TravelBlog
             }
 
             app.UseMigrations();
-
-            app.UseForwardedHeaders();
-            app.UsePathBase(Configuration.GetValue<string>("PathBase"));
+            app.UseProxy();
 
             app.UseStaticFiles();
             app.UseCookiePolicy();
