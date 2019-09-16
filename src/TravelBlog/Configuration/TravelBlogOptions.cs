@@ -10,5 +10,6 @@ namespace TravelBlog.Configuration
         public DatabaseOptions DatabaseOptions { get; set; }
         public MailingOptions MailingOptions { get; set; }
         public SiteOptions SiteOptions { get; set; }
+        public string PathBase { get; set; }
     }
 }
