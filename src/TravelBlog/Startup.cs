@@ -61,6 +61,7 @@ namespace TravelBlog
             app.UseMigrations();
             app.UseProxy();
 
+            app.UseStatusCodePagesWithReExecute("/status/{0}");
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseAuthentication();
