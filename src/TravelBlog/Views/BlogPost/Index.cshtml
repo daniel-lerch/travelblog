@@ -1,0 +1,25 @@
+﻿@model PostsViewModel
+@{
+    ViewData["Title"] = "Posts";
+}
+
+<h1>Posts</h1>
+
+@if (Model.Posts.Count > 0)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Titel</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var post in Model.Posts)
+            {
+                <tr>
+                    <td><a href="~/post/@post.Id">@post.Title</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,13 @@
+﻿@using Markdig
+@using Microsoft.AspNetCore.Html
+
+@model PostViewModel
+@{
+    ViewData["Title"] = Model.Post.Title;
+}
+
+<h1>@Model.Post.Title</h1>
+
+@{
+    Write(new HtmlString(Markdown.ToHtml(Model.Post.Content)));
+}
