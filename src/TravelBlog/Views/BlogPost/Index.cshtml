@@ -5,21 +5,23 @@
 
 <h1>Posts</h1>
 
-@if (Model.Posts.Count > 0)
+@if (Context.User.IsInRole(Constants.AdminRole))
 {
-    <table>
-        <thead>
-            <tr>
-                <th>Titel</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var post in Model.Posts)
-            {
-                <tr>
-                    <td><a href="~/post/@post.Id">@post.Title</a></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <form action="~/post/create" method="get">
+        <button type="submit" class="btn btn-success">Neuer Post</button>
+    </form>
+}
+
+@foreach (var post in Model.Posts)
+{
+    <div>
+        <h3><a href="~/post/@post.Id">@post.Title</a></h3>
+        <p>@post.PublishTime</p>
+        @if (Context.User.IsInRole(Constants.AdminRole))
+        {
+            <form action="~/post/@post.Id/edit" method="get">
+                <button type="submit" class="btn btn-outline-primary">Bearbeiten</button>
+            </form>
+        }
+    </div>
 }

@@ -41,6 +41,7 @@ namespace TravelBlog
                 .AddCookie(Constants.AuthCookieScheme, options =>
                 {
                     options.LoginPath = "/admin/login";
+                    options.AccessDeniedPath = "/admin/login";
                     options.ReturnUrlParameter = "redirect";
                 });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
@@ -65,6 +66,7 @@ namespace TravelBlog
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseAuthentication();
+            app.MapMediaFiles(env); // require authorization to access media files
             app.UseMvc();
         }
     }

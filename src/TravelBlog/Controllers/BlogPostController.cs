@@ -17,7 +17,7 @@ using TravelBlog.Services;
 
 namespace TravelBlog.Controllers
 {
-    [Route("~/post/{action=Index}/{id?}")]
+    [Route("~/post/{id?}/{action=Index}")]
     public class BlogPostController : Controller
     {
         private readonly IOptions<SiteOptions> options;
@@ -41,7 +41,6 @@ namespace TravelBlog.Controllers
             return View(new PostsViewModel(posts));
         }
 
-        [Route("~/post/{id}")]
         [Authorize(Roles = Constants.SubscriberOrAdminRole)]
         public async Task<IActionResult> Index(int id)
         {
@@ -50,18 +49,28 @@ namespace TravelBlog.Controllers
                 .SingleOrDefaultAsync();
             if (model == null)
                 return StatusCode(404);
+            if (HttpContext.User.IsInRole(Constants.SubscriberRole))
+            {
+                Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == HttpContext.User.FindFirstValue("user"));
+                if (subscriber == null)
+                {
+                    await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
+                    return StatusCode(403);
+                }
+                database.PostReads.Add(new PostRead { PostId = id, SubscriberId = subscriber.Id });
+                await database.SaveChangesAsync();
+            }
 
             return View("Post", model);
         }
 
-        [Route("~/post/{id}/auth")]
-        public async Task<IActionResult> Index(int id, [FromQuery] string token)
+        public async Task<IActionResult> Auth(int id, [FromQuery] string token)
         {
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
             if (subscriber == null)
                 return StatusCode(403);
 
-            if (!HttpContext.User.IsInRole(Constants.AdminRole))
+            if (!HttpContext.User.IsInRole(Constants.SubscriberRole) && !HttpContext.User.IsInRole(Constants.AdminRole))
             {
                 var claims = new[] { new Claim("user", subscriber.Token), new Claim("role", Constants.SubscriberRole) };
                 await HttpContext.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
@@ -70,14 +79,14 @@ namespace TravelBlog.Controllers
             return Redirect("~/post/" + id);
         }
 
-        [HttpGet]
+        [HttpGet("~/post/create")]
         [Authorize(Roles = Constants.AdminRole)]
         public IActionResult Create()
         {
             return View();
         }
 
-        [HttpPost]
+        [HttpPost("~/post/create")]
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Create(string title, string content)
         {
