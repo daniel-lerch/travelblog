@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using TravelBlog.Models;
 
 namespace TravelBlog.Controllers
@@ -14,6 +15,12 @@ namespace TravelBlog.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        [HttpGet("{code}")]
+        public IActionResult Status(int code)
+        {
+            return View(new StatusViewModel(code, ReasonPhrases.GetReasonPhrase(code)));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

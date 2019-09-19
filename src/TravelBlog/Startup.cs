@@ -37,10 +37,11 @@ namespace TravelBlog
 
             services.AddDbContext<DatabaseContext>();
             services.AddSingleton<MailingService>();
-            services.AddAuthentication(Constants.AdminCookieScheme)
-                .AddCookie(Constants.AdminCookieScheme, options =>
+            services.AddAuthentication(Constants.AuthCookieScheme)
+                .AddCookie(Constants.AuthCookieScheme, options =>
                 {
                     options.LoginPath = "/admin/login";
+                    options.AccessDeniedPath = "/admin/login";
                     options.ReturnUrlParameter = "redirect";
                 });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
@@ -61,9 +62,11 @@ namespace TravelBlog
             app.UseMigrations();
             app.UseProxy();
 
+            app.UseStatusCodePagesWithReExecute("/status/{0}");
             app.UseStaticFiles();
             app.UseCookiePolicy();
             app.UseAuthentication();
+            app.MapMediaFiles(env); // require authorization to access media files
             app.UseMvc();
         }
     }

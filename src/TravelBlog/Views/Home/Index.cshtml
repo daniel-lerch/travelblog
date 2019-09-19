@@ -8,5 +8,15 @@
 
 <div class="text-center">
     <h1 class="display-4">Willkommen bei @SiteOptions.Value.BlogName</h1>
-    <p>Bisher wurde hier noch nichts gepostet. Du kannst dich aber trotzdem schon <a href="~/register">registrieren</a>.</p>
+    @if (Context.User.IsInRole(Constants.SubscriberRole) || Context.User.IsInRole(Constants.AdminRole))
+    {
+        <p><a href="~/posts">Hier</a> kannst du dir alle bisherigen Posts anschauen.</p>
+    }
+    else
+    {
+        <p>
+            Dieser Blog ist zugangsbeschränkt. Du musst dich zuerst <a href="~/register">registrieren</a>, bevor du Inhalte sehen kannst.
+            Dann bekommst du für jeden neuen Post eine E-Mail mit einem personalisierten Link.
+        </p>
+    }
 </div>

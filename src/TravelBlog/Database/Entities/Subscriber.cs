@@ -13,5 +13,7 @@ namespace TravelBlog.Database.Entities
         public string FamilyName { get; set; }
         public DateTime ConfirmationTime { get; set; }
         public string Token { get; set; }
+
+        public IEnumerable<PostRead> Reads { get; set; }
     }
 }

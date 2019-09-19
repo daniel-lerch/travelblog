@@ -1,9 +1,17 @@
-﻿
+﻿@using Microsoft.Extensions.Options
+@using TravelBlog.Configuration
+
+@inject IOptions<SiteOptions> SiteOptions
 @{
     ViewData["Title"] = "Login";
 }
 
 <h1>Login</h1>
+
+<div class="alert alert-info" role="alert">
+    Wenn du kein Administrator von @SiteOptions.Value.BlogName bist und einfach nur Posts anschauen willst,
+    verwende bitte einen Link, den du per E-Mail erhalten hast.
+</div>
 
 <form action="" method="post">
     <div class="form-group">
