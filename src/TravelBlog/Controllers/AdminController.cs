@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
+using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
 
@@ -60,7 +61,7 @@ namespace TravelBlog.Controllers
             return Redirect("~/");
         }
 
-        [Authorize]
+        [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Index([FromQuery] string status)
         {
             var pending = await database.Subscribers.Where(s => s.ConfirmationTime == default).OrderBy(s => s.FamilyName).ToListAsync();
@@ -68,6 +69,7 @@ namespace TravelBlog.Controllers
             return View(new AdminViewModel(pending, confirmed, status));
         }
 
+        [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Confirm([FromQuery] int id)
         {
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
@@ -79,13 +81,13 @@ namespace TravelBlog.Controllers
             string mail = $"Hey {subscriber.GivenName},\r\n" +
                 $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n" +
                 $"Ab sofort wirst du per E-Mail über neue Einträge informiert.";
-            string name = subscriber.GivenName + ' ' + subscriber.FamilyName;
-            string url = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{Url.Content("~/unsubscribe?token=" + subscriber.Token)}";
-            await mailer.SendMailAsync(name, subscriber.MailAddress, "Erfolgreich registriert", mail, url);
+            string url = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
+            await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Erfolgreich registriert", mail, url);
 
             return Redirect("~/admin?status=success");
         }
 
+        [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Delete([FromQuery] int id)
         {
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);

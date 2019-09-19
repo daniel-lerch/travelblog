@@ -3,23 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
+using TravelBlog.Extensions;
 using TravelBlog.Models;
+using TravelBlog.Services;
 
 namespace TravelBlog.Controllers
 {
     [Route("~/post/{action=Index}/{id?}")]
     public class BlogPostController : Controller
     {
+        private readonly IOptions<SiteOptions> options;
         private readonly DatabaseContext database;
+        private readonly MailingService mailer;
 
-        public BlogPostController(DatabaseContext database)
+        public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database, MailingService mailer)
         {
+            this.options = options;
             this.database = database;
+            this.mailer = mailer;
         }
 
         [Route("~/posts")]
@@ -54,8 +61,21 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Create(string title, string content)
         {
-            database.BlogPosts.Add(new BlogPost { Title = title, Content = content, PublishTime = DateTime.Now });
+            var post = new BlogPost { Title = title, Content = content, PublishTime = DateTime.Now };
+            database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
+            string postUrl = Url.ContentLink("~/post/" + post.Id);
+
+            List<Subscriber> subscribers = await database.Subscribers.Where(s => s.ConfirmationTime != default).ToListAsync();
+            foreach (Subscriber subscriber in subscribers)
+            {
+                string message = $"Hey {subscriber.GivenName},\r\n" +
+                    $"es wurde etwas neues auf {options.Value.BlogName} gepostet:\r\n" +
+                    $"{postUrl}";
+                string unsubscribe = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
+                await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Neuer Post", message, unsubscribe);
+            }
+
             return Redirect("~/posts");
         }
 
