@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +32,7 @@ namespace TravelBlog.Controllers
         }
 
         [Route("~/posts")]
+        [Authorize(Roles = Constants.SubscriberOrAdminRole)]
         public async Task<IActionResult> Index()
         {
             var posts = await database.BlogPosts
@@ -39,6 +42,7 @@ namespace TravelBlog.Controllers
         }
 
         [Route("~/post/{id}")]
+        [Authorize(Roles = Constants.SubscriberOrAdminRole)]
         public async Task<IActionResult> Index(int id)
         {
             PostViewModel model = await database.BlogPosts.Where(p => p.Id == id)
@@ -48,6 +52,22 @@ namespace TravelBlog.Controllers
                 return StatusCode(404);
 
             return View("Post", model);
+        }
+
+        [Route("~/post/{id}/auth")]
+        public async Task<IActionResult> Index(int id, [FromQuery] string token)
+        {
+            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+            if (subscriber == null)
+                return StatusCode(403);
+
+            if (!HttpContext.User.IsInRole(Constants.AdminRole))
+            {
+                var claims = new[] { new Claim("user", subscriber.Token), new Claim("role", Constants.SubscriberRole) };
+                await HttpContext.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
+            }
+
+            return Redirect("~/post/" + id);
         }
 
         [HttpGet]
@@ -64,11 +84,11 @@ namespace TravelBlog.Controllers
             var post = new BlogPost { Title = title, Content = content, PublishTime = DateTime.Now };
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
-            string postUrl = Url.ContentLink("~/post/" + post.Id);
 
             List<Subscriber> subscribers = await database.Subscribers.Where(s => s.ConfirmationTime != default).ToListAsync();
             foreach (Subscriber subscriber in subscribers)
             {
+                string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={subscriber.Token}");
                 string message = $"Hey {subscriber.GivenName},\r\n" +
                     $"es wurde etwas neues auf {options.Value.BlogName} gepostet:\r\n" +
                     $"{postUrl}";

@@ -37,8 +37,8 @@ namespace TravelBlog
 
             services.AddDbContext<DatabaseContext>();
             services.AddSingleton<MailingService>();
-            services.AddAuthentication(Constants.AdminCookieScheme)
-                .AddCookie(Constants.AdminCookieScheme, options =>
+            services.AddAuthentication(Constants.AuthCookieScheme)
+                .AddCookie(Constants.AuthCookieScheme, options =>
                 {
                     options.LoginPath = "/admin/login";
                     options.ReturnUrlParameter = "redirect";

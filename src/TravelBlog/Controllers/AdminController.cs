@@ -42,8 +42,8 @@ namespace TravelBlog.Controllers
         {
             if (password == options.Value.AdminPassword)
             {
-                var claims = new[] { new Claim("user", username), new Claim("role", "Admin") };
-                await HttpContext.SignInAsync(Constants.AdminCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
+                var claims = new[] { new Claim("user", username), new Claim("role", Constants.AdminRole) };
+                await HttpContext.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
 
                 if (Url.IsLocalUrl(redirect))
                     return Redirect(redirect);
@@ -56,7 +56,7 @@ namespace TravelBlog.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(Constants.AdminCookieScheme);
+            await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
 
             return Redirect("~/");
         }
