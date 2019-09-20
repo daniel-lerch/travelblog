@@ -48,7 +48,7 @@ namespace TravelBlog.Database
 
             var postRead = modelBuilder.Entity<PostRead>();
             postRead.HasKey(r => r.Id);
-            postRead.HasOne(r => r.Post).WithMany(p => p.Reads).HasForeignKey(r => r.SubscriberId);
+            postRead.HasOne(r => r.Post).WithMany(p => p.Reads).HasForeignKey(r => r.PostId);
             postRead.HasOne(r => r.Subscriber).WithMany(s => s.Reads).HasForeignKey(r => r.SubscriberId);
         }
     }
