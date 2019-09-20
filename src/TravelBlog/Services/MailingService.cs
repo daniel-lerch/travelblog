@@ -10,10 +10,11 @@ using TravelBlog.Configuration;
 
 namespace TravelBlog.Services
 {
-    public class MailingService
+    public class MailingService : IDisposable
     {
         private readonly IOptions<MailingOptions> options;
         private readonly ILogger<MailingService> logger;
+        private SmtpClient client;
 
         public MailingService(IOptions<MailingOptions> options, ILogger<MailingService> logger)
         {
@@ -42,13 +43,51 @@ namespace TravelBlog.Services
                 Text = content + "\r\n\r\nWenn du keine E-Mails mehr von diesem Blog erhalten möchtest, klicke einfach auf folgenden Link: " + unsubscribeLink
             };
 
-            using (var client = new SmtpClient())
+            if (client == null)
             {
+                client = new SmtpClient();
                 await client.ConnectAsync(options.SmtpHost, options.SmtpPort, options.UseSsl);
                 await client.AuthenticateAsync(options.SmtpUsername, options.SmtpPassword);
-                await client.SendAsync(message);
-                await client.DisconnectAsync(quit: true);
+            }
+
+            await client.SendAsync(message);
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        client?.Disconnect(quit: true);
+                    }
+                    catch { }
+                    finally
+                    {
+                        client?.Dispose();
+                    }
+                }
+
+                disposedValue = true;
             }
         }
+
+        // ~MailingService()
+        // {
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
