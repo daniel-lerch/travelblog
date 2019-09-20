@@ -30,6 +30,7 @@
 @if (Model.PendingSubscribers.Count > 0)
 {
     <h3>Unbestätigte Registrierungen</h3>
+    <p class="text-muted">Insgesamt @Model.PendingSubscribers.Count</p>
     <table class="table table-responsive">
         <thead>
             <tr>
@@ -65,6 +66,7 @@ else
 @if (Model.ConfirmedSubscribers.Count > 0)
 {
     <h3>Bestätigte Registrierungen</h3>
+    <p class="text-muted">Insgesamt @Model.ConfirmedSubscribers.Count</p>
     <table class="table table-responsive">
         <thead>
             <tr>

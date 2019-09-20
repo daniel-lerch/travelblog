@@ -57,7 +57,7 @@ namespace TravelBlog.Controllers
                     await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
                     return StatusCode(403);
                 }
-                database.PostReads.Add(new PostRead { PostId = id, SubscriberId = subscriber.Id });
+                database.PostReads.Add(new PostRead { PostId = id, SubscriberId = subscriber.Id, AccessTime = DateTime.Now });
                 await database.SaveChangesAsync();
             }
 
