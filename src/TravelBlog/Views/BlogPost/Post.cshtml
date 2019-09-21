@@ -7,7 +7,14 @@
 }
 
 <h1>@Model.Post.Title</h1>
-<p>Gepostet am @Model.Post.PublishTime - @Model.ReadCount Aufrufe bisher</p>
+@if (Context.User.IsInRole(Constants.AdminRole))
+{
+    <p>Gepostet am @Model.Post.PublishTime - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
+}
+else
+{
+    <p>Gepostet am @Model.Post.PublishTime - @Model.ReadCount Aufrufe bisher</p>
+}
 
 @{
     Write(new HtmlString(Markdown.ToHtml(Model.Post.Content)));

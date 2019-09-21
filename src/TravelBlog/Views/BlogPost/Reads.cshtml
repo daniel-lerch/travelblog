@@ -1,0 +1,27 @@
+﻿@using TravelBlog.Database
+@using TravelBlog.Database.Entities
+
+@model PostReadsViewModel
+@{
+    ViewData["Title"] = $"Seitenaufrufe für {Model.Post.Title}";
+}
+
+<h1>Seitenaufrufe für <em>@Model.Post.Title</em></h1>
+
+<table class="table table-responsive">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Zugriff</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (PostRead read in Model.Reads)
+        {
+            <tr>
+                <td>@read.Subscriber.GetName()</td>
+                <td>@read.AccessTime</td>
+            </tr>
+        }
+    </tbody>
+</table>

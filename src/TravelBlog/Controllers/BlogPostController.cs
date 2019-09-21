@@ -79,6 +79,19 @@ namespace TravelBlog.Controllers
             return Redirect("~/post/" + id);
         }
 
+        [Authorize(Roles = Constants.AdminRole)]
+        public async Task<IActionResult> Reads(int id)
+        {
+            BlogPost blog = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (blog == null)
+                return StatusCode(404);
+
+            List<PostRead> reads = await database.PostReads.Where(r => r.PostId == id)
+                .Include(r => r.Subscriber).ToListAsync();
+
+            return View(new PostReadsViewModel(blog, reads));
+        }
+
         [HttpGet("~/post/create")]
         [Authorize(Roles = Constants.AdminRole)]
         public IActionResult Create()
