@@ -19,9 +19,7 @@
         <p>@post.PublishTime</p>
         @if (Context.User.IsInRole(Constants.AdminRole))
         {
-            <form action="~/post/@post.Id/edit" method="get">
-                <button type="submit" class="btn btn-outline-primary">Bearbeiten</button>
-            </form>
+            <a class="btn btn-outline-primary" href="~/post/@post.Id/edit">Bearbeiten</a>
         }
     </div>
 }

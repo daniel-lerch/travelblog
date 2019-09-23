@@ -6,7 +6,7 @@
     ViewData["Title"] = $"Seitenaufrufe für {Model.Post.Title}";
 }
 
-<h1>Seitenaufrufe für <em>@Model.Post.Title</em></h1>
+<h1>Seitenaufrufe für <a href="~/post/@Model.Post.Id">@Model.Post.Title</a></h1>
 
 <table class="table table-responsive">
     <thead>

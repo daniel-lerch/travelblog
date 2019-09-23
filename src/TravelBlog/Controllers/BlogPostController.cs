@@ -118,7 +118,7 @@ namespace TravelBlog.Controllers
                 await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Neuer Post", message, unsubscribe);
             }
 
-            return Redirect("~/posts");
+            return Redirect("~/post/" + post.Id);
         }
 
         [HttpGet]
@@ -144,7 +144,7 @@ namespace TravelBlog.Controllers
             blog.Content = content;
             blog.ModifyTime = DateTime.Now;
             await database.SaveChangesAsync();
-            return Redirect("~/posts");
+            return Redirect("~/post/" + id);
         }
     }
 }
