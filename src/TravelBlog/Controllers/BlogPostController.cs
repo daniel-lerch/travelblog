@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TravelBlog.Configuration;
 using TravelBlog.Database;
@@ -21,14 +22,19 @@ namespace TravelBlog.Controllers
     public class BlogPostController : Controller
     {
         private readonly IOptions<SiteOptions> options;
+        private readonly ILogger<BlogPostController> logger;
         private readonly DatabaseContext database;
         private readonly MailingService mailer;
+        private readonly Services.AuthenticationService authentication;
 
-        public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database, MailingService mailer)
+        public BlogPostController(IOptions<SiteOptions> options, ILogger<BlogPostController> logger,
+            DatabaseContext database, MailingService mailer, Services.AuthenticationService authentication)
         {
             this.options = options;
+            this.logger = logger;
             this.database = database;
             this.mailer = mailer;
+            this.authentication = authentication;
         }
 
         [Route("~/posts")]
@@ -39,6 +45,15 @@ namespace TravelBlog.Controllers
                 .Select(p => new PostsViewModel.BlogPostPreview(p.Id, p.Title, p.PublishTime, p.Reads.Count()))
                 .ToListAsync();
             return View(new PostsViewModel(posts));
+        }
+
+        [Route("~/posts/auth")]
+        public async Task<IActionResult> Auth([FromQuery] string token)
+        {
+            if (await authentication.SignInAsnyc(HttpContext, token))
+                return Redirect("~/posts");
+            else
+                return StatusCode(403);
         }
 
         [Authorize(Roles = Constants.SubscriberOrAdminRole)]
@@ -66,17 +81,10 @@ namespace TravelBlog.Controllers
 
         public async Task<IActionResult> Auth(int id, [FromQuery] string token)
         {
-            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber == null)
+            if (await authentication.SignInAsnyc(HttpContext, token))
+                return Redirect("~/post/" + id);
+            else
                 return StatusCode(403);
-
-            if (!HttpContext.User.IsInRole(Constants.SubscriberRole) && !HttpContext.User.IsInRole(Constants.AdminRole))
-            {
-                var claims = new[] { new Claim("user", subscriber.Token), new Claim("role", Constants.SubscriberRole) };
-                await HttpContext.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
-            }
-
-            return Redirect("~/post/" + id);
         }
 
         [Authorize(Roles = Constants.AdminRole)]
@@ -115,7 +123,14 @@ namespace TravelBlog.Controllers
                     $"es wurde etwas neues auf {options.Value.BlogName} gepostet:\r\n" +
                     $"{postUrl}";
                 string unsubscribe = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
-                await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Neuer Post", message, unsubscribe);
+                try
+                {
+                    await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Neuer Post", message, unsubscribe);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Failed to send mail to {subscriber.MailAddress}");
+                }
             }
 
             return Redirect("~/post/" + post.Id);

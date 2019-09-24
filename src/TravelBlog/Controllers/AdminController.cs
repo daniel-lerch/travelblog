@@ -78,9 +78,17 @@ namespace TravelBlog.Controllers
             subscriber.ConfirmationTime = DateTime.Now;
             await database.SaveChangesAsync();
 
-            string mail = $"Hey {subscriber.GivenName},\r\n" +
+            string mail;
+            if (await database.BlogPosts.AnyAsync()) 
+                // Give late subscribers the chance to view posts before they get the next notification mail.
+                mail = $"Hey {subscriber.GivenName},\r\n" +
+                $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n" +
+                $"Es wurden bereits Posts veröffentlicht: {Url.ContentLink($"~/posts/auth?token={subscriber.Token}")}";
+            else
+                mail = $"Hey {subscriber.GivenName},\r\n" +
                 $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n" +
                 $"Ab sofort wirst du per E-Mail über neue Einträge informiert.";
+
             string url = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
             await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Erfolgreich registriert", mail, url);
 

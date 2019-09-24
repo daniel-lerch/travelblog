@@ -6,15 +6,16 @@
     ViewData["Title"] = Model.Post.Title;
 }
 
-<h1>
-    @Model.Post.Title <a class="btn btn-light" href="~/post/@Model.Post.Id/edit">✏️</a>
-</h1>
 @if (Context.User.IsInRole(Constants.AdminRole))
 {
+    <h1>
+        @Model.Post.Title <a class="btn btn-light" href="~/post/@Model.Post.Id/edit">✏️</a>
+    </h1>
     <p>Gepostet am @Model.Post.PublishTime - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
 }
 else
 {
+    <h1>@Model.Post.Title</h1>
     <p>Gepostet am @Model.Post.PublishTime - @Model.ReadCount Aufrufe bisher</p>
 }
 

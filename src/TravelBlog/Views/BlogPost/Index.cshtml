@@ -7,9 +7,7 @@
 
 @if (Context.User.IsInRole(Constants.AdminRole))
 {
-    <form action="~/post/create" method="get">
-        <button type="submit" class="btn btn-success">Neuer Post</button>
-    </form>
+    <a class="btn btn-success" href="~/post/create">Neuer Post</a>
 }
 
 @foreach (var post in Model.Posts)

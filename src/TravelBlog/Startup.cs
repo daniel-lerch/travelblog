@@ -36,6 +36,7 @@ namespace TravelBlog
             });
 
             services.AddDbContext<DatabaseContext>();
+            services.AddScoped<AuthenticationService>();
             services.AddScoped<MailingService>();
             services.AddAuthentication(Constants.AuthCookieScheme)
                 .AddCookie(Constants.AuthCookieScheme, options =>
