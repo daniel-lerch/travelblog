@@ -11,7 +11,14 @@
     <h1>
         @Model.Post.Title <a class="btn btn-light" href="~/post/@Model.Post.Id/edit">✏️</a>
     </h1>
-    <p>Gepostet am @Model.Post.PublishTime - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
+    if (Model.Post.PublishTime == default)
+    {
+        <p>Entwurf - zuletzt bearbeitet am @Model.Post.ModifyTime</p>
+    }
+    else
+    {
+        <p>Gepostet am @Model.Post.PublishTime - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
+    }
 }
 else
 {

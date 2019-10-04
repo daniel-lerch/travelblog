@@ -1,11 +1,11 @@
 ﻿
 @{ 
-    ViewData["Title"] = "Create post";
+    ViewData["Title"] = "Post erstellen";
 }
 
-<h1>Create post</h1>
+<h1>Post erstellen</h1>
 
-<form action="" method="post">
+<form method="post">
     <div class="form-group">
         <label for="title">Titel</label>
         <input type="text" class="form-control" id="title" name="title" autocomplete="off" />
@@ -15,5 +15,6 @@
         <textarea class="form-control" id="content" name="content" rows="10" aria-describedby="contentHelp"></textarea>
         <small class="form-text text-muted" id="contentHelp">Du kannst hier Markdown zur Formatierung verwenden.</small>
     </div>
-    <button type="submit" class="btn btn-primary">Posten</button>
+    <button type="submit" formaction="~/post/draft" class="btn btn-secondary">Entwurf speichern</button>
+    <button type="submit" formaction="~/post/create" class="btn btn-primary">Posten</button>
 </form>

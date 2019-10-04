@@ -107,6 +107,17 @@ namespace TravelBlog.Controllers
             return View();
         }
 
+        [HttpPost("~/post/draft")]
+        [Authorize(Roles = Constants.AdminRole)]
+        public async Task<IActionResult> Draft(string title, string content)
+        {
+            var post = new BlogPost { Title = title, Content = content, ModifyTime = DateTime.Now };
+            database.BlogPosts.Add(post);
+            await database.SaveChangesAsync();
+
+            return Redirect("~/post/" + post.Id);
+        }
+
         [HttpPost("~/post/create")]
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Create(string title, string content)
@@ -115,6 +126,60 @@ namespace TravelBlog.Controllers
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 
+            await NotifySubscribers(post);
+
+            return Redirect("~/post/" + post.Id);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = Constants.AdminRole)]
+        public async Task<IActionResult> Edit(int id)
+        {
+            PostViewModel model = await database.BlogPosts.Where(p => p.Id == id)
+                .Select(p => new PostViewModel(p, p.Reads.Count()))
+                .SingleOrDefaultAsync();
+            if (model == null)
+                return StatusCode(404);
+
+            return View(model);
+        }
+        
+        [HttpPost]
+        [Authorize(Roles = Constants.AdminRole)]
+        public async Task<IActionResult> Edit(int id, string title, string content)
+        {
+            BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (post == null)
+                return StatusCode(404);
+
+            post.Title = title;
+            post.Content = content;
+            post.ModifyTime = DateTime.Now;
+            await database.SaveChangesAsync();
+            return Redirect("~/post/" + id);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = Constants.AdminRole)]
+        public async Task<IActionResult> Publish(int id, string title, string content)
+        {
+            BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (post == null)
+                return StatusCode(404);
+
+            post.Title = title;
+            post.Content = content;
+            post.PublishTime = DateTime.Now;
+            post.ModifyTime = default;
+            await database.SaveChangesAsync();
+
+            await NotifySubscribers(post);
+
+            return Redirect("~/post/" + id);
+        }
+
+        private async Task NotifySubscribers(BlogPost post)
+        {
             List<Subscriber> subscribers = await database.Subscribers.Where(s => s.ConfirmationTime != default).ToListAsync();
             foreach (Subscriber subscriber in subscribers)
             {
@@ -132,34 +197,6 @@ namespace TravelBlog.Controllers
                     logger.LogError(ex, $"Failed to send mail to {subscriber.MailAddress}");
                 }
             }
-
-            return Redirect("~/post/" + post.Id);
-        }
-
-        [HttpGet]
-        [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Edit(int id)
-        {
-            BlogPost blog = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
-            if (blog == null)
-                return StatusCode(404);
-
-            return View(new EditPostViewModel(blog.Title, blog.Content));
-        }
-        
-        [HttpPost]
-        [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Edit(int id, string title, string content)
-        {
-            BlogPost blog = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
-            if (blog == null)
-                return StatusCode(404);
-
-            blog.Title = title;
-            blog.Content = content;
-            blog.ModifyTime = DateTime.Now;
-            await database.SaveChangesAsync();
-            return Redirect("~/post/" + id);
         }
     }
 }

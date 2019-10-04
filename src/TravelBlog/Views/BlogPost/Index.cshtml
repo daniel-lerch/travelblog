@@ -10,21 +10,28 @@
     <a class="btn btn-success mb-2" href="~/post/create">Neuer Post</a>
 }
 
-@foreach (var post in Model.Posts)
+@foreach (var post in Model.Posts.Where(x => Context.User.IsInRole(Constants.AdminRole) || x.PublishTime != default))
 {
-    <div class="border rounded pt-2 pb-2 pl-3 mb-2">
-        @if (Context.User.IsInRole(Constants.AdminRole))
+<div class="border rounded pt-2 pb-2 pl-3 mb-2">
+    @if (Context.User.IsInRole(Constants.AdminRole))
+    {
+        <h3>
+            <a href="~/post/@post.Id">@post.Title</a>
+            <a class="btn btn-light" href="~/post/@post.Id/edit">✏️</a>
+        </h3>
+        if (post.PublishTime == default)
         {
-            <h3>
-                <a href="~/post/@post.Id">@post.Title</a> 
-                <a class="btn btn-light" href="~/post/@post.Id/edit">✏️</a>
-            </h3>
-            <p class="mb-1">@post.PublishTime - <a href="~/post/@post.Id/reads">@post.ReadCount Aufrufe</a></p>
+            <p class="mb-1">Entwurf</p>
         }
         else
         {
-            <h3><a href="~/post/@post.Id">@post.Title</a></h3>
-            <p class="mb-1">@post.PublishTime - @post.ReadCount Aufrufe</p>
+            <p class="mb-1">@post.PublishTime - <a href="~/post/@post.Id/reads">@post.ReadCount Aufrufe</a></p>
         }
-    </div>
+    }
+    else
+    {
+        <h3><a href="~/post/@post.Id">@post.Title</a></h3>
+        <p class="mb-1">@post.PublishTime - @post.ReadCount Aufrufe</p>
+    }
+</div>
 }
