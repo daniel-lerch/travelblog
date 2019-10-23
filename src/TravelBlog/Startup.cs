@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TravelBlog.Database;
 using TravelBlog.Extensions;
 using TravelBlog.Services;
@@ -38,6 +39,7 @@ namespace TravelBlog
             services.AddDbContext<DatabaseContext>();
             services.AddScoped<AuthenticationService>();
             services.AddScoped<MailingService>();
+            services.AddRouting();
             services.AddAuthentication(Constants.AuthCookieScheme)
                 .AddCookie(Constants.AuthCookieScheme, options =>
                 {
@@ -45,11 +47,11 @@ namespace TravelBlog
                     options.AccessDeniedPath = "/admin/login";
                     options.ReturnUrlParameter = "redirect";
                 });
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion. Version_3_0);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -65,10 +67,12 @@ namespace TravelBlog
 
             app.UseStatusCodePagesWithReExecute("/status/{0}");
             app.UseStaticFiles();
+            app.UseRouting();
             app.UseCookiePolicy();
             app.UseAuthentication();
+            app.UseAuthorization();
             app.MapMediaFiles(env); // require authorization to access media files
-            app.UseMvc();
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }
 }

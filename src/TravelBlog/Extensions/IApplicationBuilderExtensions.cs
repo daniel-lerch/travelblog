@@ -45,7 +45,7 @@ namespace TravelBlog.Extensions
             return app;
         }
 
-        public static IApplicationBuilder MapMediaFiles(this IApplicationBuilder app, IHostingEnvironment env)
+        public static IApplicationBuilder MapMediaFiles(this IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.Map("/media", branch =>
             {
