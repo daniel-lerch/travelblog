@@ -111,7 +111,7 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Draft(string title, string content)
         {
-            var post = new BlogPost { Title = title, Content = content, ModifyTime = DateTime.Now };
+            var post = new BlogPost { Title = title, Content = content ?? string.Empty, ModifyTime = DateTime.Now };
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 
@@ -122,7 +122,7 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Create(string title, string content)
         {
-            var post = new BlogPost { Title = title, Content = content, PublishTime = DateTime.Now };
+            var post = new BlogPost { Title = title, Content = content ?? string.Empty, PublishTime = DateTime.Now };
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 
@@ -153,7 +153,7 @@ namespace TravelBlog.Controllers
                 return StatusCode(404);
 
             post.Title = title;
-            post.Content = content;
+            post.Content = content ?? string.Empty;
             post.ModifyTime = DateTime.Now;
             await database.SaveChangesAsync();
             return Redirect("~/post/" + id);
@@ -168,7 +168,7 @@ namespace TravelBlog.Controllers
                 return StatusCode(404);
 
             post.Title = title;
-            post.Content = content;
+            post.Content = content ?? string.Empty;
             post.PublishTime = DateTime.Now;
             post.ModifyTime = default;
             await database.SaveChangesAsync();

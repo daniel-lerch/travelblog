@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,16 @@ namespace TravelBlog
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var cultures = new[] { new CultureInfo("de-DE") };
+
+                options.DefaultRequestCulture = new RequestCulture("de-DE");
+                options.SupportedCultures = cultures;
+                options.SupportedUICultures = cultures;
+                options.RequestCultureProviders = new[] { new AcceptLanguageHeaderRequestCultureProvider() };
+            });
+
             services.AddDbContext<DatabaseContext>();
             services.AddScoped<AuthenticationService>();
             services.AddScoped<MailingService>();
@@ -47,7 +59,7 @@ namespace TravelBlog
                     options.AccessDeniedPath = "/admin/login";
                     options.ReturnUrlParameter = "redirect";
                 });
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion. Version_3_0);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,6 +77,7 @@ namespace TravelBlog
             app.UseMigrations();
             app.UseProxy();
 
+            app.UseRequestLocalization();
             app.UseStatusCodePagesWithReExecute("/status/{0}");
             app.UseStaticFiles();
             app.UseRouting();
