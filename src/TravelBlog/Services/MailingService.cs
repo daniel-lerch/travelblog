@@ -10,11 +10,11 @@ using TravelBlog.Configuration;
 
 namespace TravelBlog.Services
 {
-    public class MailingService : IDisposable
+    public class MailingService : IAsyncDisposable
     {
         private readonly IOptions<MailingOptions> options;
         private readonly ILogger<MailingService> logger;
-        private SmtpClient client;
+        private SmtpClient? client;
 
         public MailingService(IOptions<MailingOptions> options, ILogger<MailingService> logger)
         {
@@ -53,40 +53,21 @@ namespace TravelBlog.Services
             await client.SendAsync(message);
         }
 
-        #region IDisposable Support
+        #region IAsyncDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        public async ValueTask DisposeAsync()
         {
             if (!disposedValue)
             {
-                if (disposing)
+                if (client != null)
                 {
-                    try
-                    {
-                        client?.Disconnect(quit: true);
-                    }
-                    catch { }
-                    finally
-                    {
-                        client?.Dispose();
-                    }
+                    await client.DisconnectAsync(quit: true);
+                    client.Dispose();
                 }
 
                 disposedValue = true;
             }
-        }
-
-        // ~MailingService()
-        // {
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            Dispose(true);
-            // GC.SuppressFinalize(this);
         }
         #endregion
     }

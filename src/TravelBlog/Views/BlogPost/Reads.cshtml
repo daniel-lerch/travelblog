@@ -19,7 +19,7 @@
         @foreach (PostRead read in Model.Reads)
         {
             <tr>
-                <td>@read.Subscriber.GetName()</td>
+                <td>@read.Subscriber!.GetName()</td>
                 <td>@read.AccessTime</td>
             </tr>
         }

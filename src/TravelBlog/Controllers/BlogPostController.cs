@@ -72,7 +72,7 @@ namespace TravelBlog.Controllers
                     await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
                     return StatusCode(403);
                 }
-                database.PostReads.Add(new PostRead { PostId = id, SubscriberId = subscriber.Id, AccessTime = DateTime.Now });
+                database.PostReads.Add(new PostRead(id: default, postId: id, subscriberId: subscriber.Id, accessTime: DateTime.Now));
                 await database.SaveChangesAsync();
             }
 
@@ -111,7 +111,7 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Draft(string title, string content)
         {
-            var post = new BlogPost { Title = title, Content = content ?? string.Empty, ModifyTime = DateTime.Now };
+            var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: default, modifyTime: DateTime.Now);
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 
@@ -122,7 +122,7 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Create(string title, string content)
         {
-            var post = new BlogPost { Title = title, Content = content ?? string.Empty, PublishTime = DateTime.Now };
+            var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: DateTime.Now, modifyTime: default);
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 

@@ -35,7 +35,7 @@ namespace TravelBlog.Controllers
             if (!ModelState.IsValid)
                 return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Deine Angaben sind unvollständig oder ungültig!"));
 
-            context.Subscribers.Add(new Subscriber { MailAddress = mailAddress, GivenName = givenName, FamilyName = familyName, Token = RandomToken() });
+            context.Subscribers.Add(new Subscriber(id: default, mailAddress: mailAddress, givenName: givenName, familyName: familyName, confirmationTime: default, token: RandomToken()));
             try
             {
                 await context.SaveChangesAsync();
@@ -51,12 +51,10 @@ namespace TravelBlog.Controllers
 
         private string RandomToken()
         {
-            using (var random = RandomNumberGenerator.Create())
-            {
-                byte[] buffer = new byte[20];
-                random.GetBytes(buffer);
-                return Base32Encoding.Standard.GetString(buffer);
-            }
+            using var random = RandomNumberGenerator.Create();
+            byte[] buffer = new byte[20];
+            random.GetBytes(buffer);
+            return Base32Encoding.Standard.GetString(buffer);
         }
     }
 }

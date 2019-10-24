@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <Nullable>enable</Nullable>
     <Company />
     <Authors>Daniel Lerch</Authors>
     <Copyright>© 2019 Daniel Lerch</Copyright>

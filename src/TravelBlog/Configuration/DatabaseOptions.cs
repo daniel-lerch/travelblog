@@ -8,6 +8,6 @@ namespace TravelBlog.Configuration
 {
     public class DatabaseOptions
     {
-        [Required] public string ConnectionString { get; set; }
+        [Required] public string? ConnectionString { get; set; }
     }
 }
