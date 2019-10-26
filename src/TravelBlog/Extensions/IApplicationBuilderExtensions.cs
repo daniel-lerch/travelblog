@@ -44,34 +44,5 @@ namespace TravelBlog.Extensions
 
             return app;
         }
-
-        public static IApplicationBuilder MapMediaFiles(this IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            app.Map("/media", branch =>
-            {
-                branch.Use(async (context, next) =>
-                {
-                    if (!context.User.IsInRole(Constants.SubscriberRole) && !context.User.IsInRole(Constants.AdminRole))
-                    {
-                        context.Response.StatusCode = 403;
-                        return;
-                    }
-
-                    await next();
-                });
-
-                string path = Path.Combine(env.ContentRootPath, "media");
-                Directory.CreateDirectory(path);
-                PhysicalFileProvider provider = new PhysicalFileProvider(path);
-
-                branch.UseFileServer(new FileServerOptions
-                {
-                    EnableDirectoryBrowsing = false,
-                    FileProvider = provider
-                });
-            });
-
-            return app;
-        }
     }
 }

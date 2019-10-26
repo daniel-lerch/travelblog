@@ -84,7 +84,6 @@ namespace TravelBlog
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapMediaFiles(env); // require authorization to access media files
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }

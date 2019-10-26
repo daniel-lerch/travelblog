@@ -109,7 +109,7 @@ namespace TravelBlog.Controllers
 
         [HttpPost("~/post/draft")]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Draft(string title, string content)
+        public async Task<IActionResult> Draft(string title, string? content)
         {
             var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: default, modifyTime: DateTime.Now);
             database.BlogPosts.Add(post);
@@ -120,7 +120,7 @@ namespace TravelBlog.Controllers
 
         [HttpPost("~/post/create")]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Create(string title, string content)
+        public async Task<IActionResult> Create(string title, string? content)
         {
             var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: DateTime.Now, modifyTime: default);
             database.BlogPosts.Add(post);
@@ -146,7 +146,7 @@ namespace TravelBlog.Controllers
         
         [HttpPost]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Edit(int id, string title, string content)
+        public async Task<IActionResult> Edit(int id, string title, string? content)
         {
             BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
             if (post == null)
@@ -161,7 +161,7 @@ namespace TravelBlog.Controllers
 
         [HttpPost]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Publish(int id, string title, string content)
+        public async Task<IActionResult> Publish(int id, string title, string? content)
         {
             BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
             if (post == null)
