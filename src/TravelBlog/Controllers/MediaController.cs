@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using TravelBlog.Models;
 using static TravelBlog.Constants;
 
 namespace TravelBlog.Controllers
@@ -36,10 +37,35 @@ namespace TravelBlog.Controllers
         }
 
         [HttpPost()]
+        [DisableRequestSizeLimit]
         [Authorize(Roles = AdminRole)]
-        public IActionResult Upload(IReadOnlyList<IFormFile> files)
+        public async Task<IActionResult> Upload(IFormFileCollection files)
         {
-            return View("Index");
+            var folder = new DirectoryInfo(Path.Combine(environment.ContentRootPath, "media", DateTime.Now.ToString("yyMM")));
+            folder.Create();
+            var status = new List<(string name, bool success)>(capacity: files.Count);
+
+            foreach (IFormFile file in files)
+            {
+                FileInfo physical = new FileInfo(Path.Combine(folder.FullName, file.FileName));
+                FileStream? stream = null;
+                try
+                {
+                    stream = new FileStream(physical.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    await file.CopyToAsync(stream);
+                    status.Add((file.FileName, true));
+                }
+                catch (IOException)
+                {
+                    status.Add((file.FileName, false));
+                }
+                finally
+                {
+                    if (stream != null) await stream.DisposeAsync();
+                }
+            }
+
+            return View("Uploaded", new MediaUploadViewModel(status));
         }
 
         [Route("~/media/{month}/{file}")]

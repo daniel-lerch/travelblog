@@ -6,5 +6,8 @@
 <h1>Mediendateien hochladen</h1>
 
 <form enctype="multipart/form-data" method="post">
-    <input type="file" multiple id="files" name="files[]" />
+    <div class="form-group">
+        <input type="file" multiple class="form-control-file" id="files" name="files" />
+    </div>
+    <button type="submit" class="btn btn-primary">Hochladen</button>
 </form>

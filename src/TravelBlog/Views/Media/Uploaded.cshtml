@@ -1,0 +1,23 @@
+﻿@model MediaUploadViewModel
+@{
+    ViewData["Title"] = "Upload Zusammenfassung";
+}
+
+<h1>Upload Zusammenfassung</h1>
+
+<ul class="list-group mt-3 mb-3">
+    @foreach (var file in Model.Files)
+    {
+        if (file.success)
+        {
+            <li class="list-group-item list-group-item-success">Erfolgreich: @file.name</li>
+        }
+        else
+        {
+            <li class="list-group-item list-group-item-danger">Fehlgeschlagen: @file.name</li>
+        }
+    }
+</ul>
+
+<a href="~/media" class="btn btn-primary">Anzeigen</a>
+<a href="~/media/upload" class="btn btn-outline-primary">Weitere Dateien hochladen</a>
