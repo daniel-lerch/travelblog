@@ -26,7 +26,23 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = AdminRole)]
         public IActionResult Index()
         {
-            return View("Index");
+            var result = new List<(string month, string name)>();
+            var extensions = new[] { ".jpg", ".jpeg", ".png" };
+            var folder = new DirectoryInfo(Path.Combine(environment.ContentRootPath, "media"));
+            DirectoryInfo[] months = folder.GetDirectories();
+            for (int i = months.Length - 1; i >= 0; i--)
+            {
+                FileInfo[] files = months[i].GetFiles();
+                for (int j = files.Length - 1; j >= 0; j--)
+                {
+                    if (extensions.Contains(files[j].Extension))
+                    {
+                        result.Add((months[i].Name, files[j].Name));
+                    }
+                }
+            }
+
+            return View("Index", new MediaViewModel(result));
         }
 
         [HttpGet()]
@@ -70,7 +86,7 @@ namespace TravelBlog.Controllers
 
         [Route("~/media/{month}/{file}")]
         [Authorize(Roles = SubscriberOrAdminRole)]
-        public IActionResult Media(string month, string file, [FromQuery] string? width)
+        public IActionResult Media(string month, string file, [FromQuery] int width)
         {
             var fileInfo = new FileInfo(Path.Combine(environment.ContentRootPath, "media", month, file));
             if (!fileInfo.Exists)

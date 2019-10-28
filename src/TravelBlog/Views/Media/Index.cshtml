@@ -1,4 +1,4 @@
-﻿
+﻿@model MediaViewModel
 @{
     ViewData["Title"] = "Mediendateien";
 }
@@ -6,3 +6,46 @@
 <h1>Mediendateien</h1>
 
 <a href="~/media/upload" class="btn btn-success">Dateien hochladen</a>
+
+@{
+    string? current = null;
+
+    foreach (var file in Model.Files)
+    {
+        if (file.month != current)
+        {
+            <hr />
+            <h3>@DateTime.ParseExact(file.month, "yyMM", null).ToString("MMM yyyy")</h3>
+            current = file.month;
+        }
+        <figure class="figure border rounded p-1">
+            <!-- Do not split these elements! White spaces would destroy the layout. -->
+            <div class="center-image"><img src="~/media/@file.month/@file.name?width=200" /></div>
+            <figcaption class="figure-caption mt-1 mx-1">@file.name</figcaption>
+        </figure>
+    }
+}
+
+@section Styles {
+    <style>
+        .center-image {
+            width: 200px;
+            height: 200px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+            .center-image::before {
+                content: "";
+                display: inline-block;
+                height: 100%;
+                vertical-align: middle;
+            }
+
+            .center-image img {
+                vertical-align: middle;
+                max-width: 200px;
+                max-height: 200px;
+            }
+    </style>
+}
