@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="MailKit" Version="2.3.2" />
-    <PackageReference Include="Markdig" Version="0.17.1" />
+    <PackageReference Include="Markdig" Version="0.18.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0">
@@ -22,6 +22,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="Wiry.Base32" Version="1.1.1" />
   </ItemGroup>
 

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using TravelBlog.Models;
+using TravelBlog.Services;
 using static TravelBlog.Constants;
 
 namespace TravelBlog.Controllers
@@ -17,10 +18,12 @@ namespace TravelBlog.Controllers
     public class MediaController : Controller
     {
         private readonly IWebHostEnvironment environment;
+        private readonly ThumbnailService thumbnail;
 
-        public MediaController(IWebHostEnvironment environment)
+        public MediaController(IWebHostEnvironment environment, ThumbnailService thumbnail)
         {
             this.environment = environment;
+            this.thumbnail = thumbnail;
         }
 
         [Authorize(Roles = AdminRole)]
@@ -86,18 +89,34 @@ namespace TravelBlog.Controllers
 
         [Route("~/media/{month}/{file}")]
         [Authorize(Roles = SubscriberOrAdminRole)]
-        public IActionResult Media(string month, string file, [FromQuery] int width)
+        public IActionResult Media(string month, string file, [FromQuery] int size)
         {
+            var extensions = new[] { ".jpg", ".jpeg" };
             var fileInfo = new FileInfo(Path.Combine(environment.ContentRootPath, "media", month, file));
             if (!fileInfo.Exists)
                 return StatusCode(404);
+
+            size = size switch
+            {
+                400 => 400,
+                1600 => 1600,
+                _ => 0
+            };
 
             var mimeProvider = new FileExtensionContentTypeProvider();
             if (!mimeProvider.TryGetContentType(fileInfo.Name, out string contentType))
             {
                 contentType = "application/octet-stream";
             }
-            return PhysicalFile(fileInfo.FullName, contentType, enableRangeProcessing: true);
+
+            if (size == 0 || !extensions.Contains(fileInfo.Extension))
+            {
+                return PhysicalFile(fileInfo.FullName, contentType, enableRangeProcessing: true);
+            }
+            else
+            {
+                return PhysicalFile(thumbnail.GetThumbnail(fileInfo, size, month, file), contentType, enableRangeProcessing: true);
+            }
         }
     }
 }
