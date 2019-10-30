@@ -1,25 +1,30 @@
-﻿using SixLabors.ImageSharp;
+﻿using Microsoft.Extensions.Options;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TravelBlog.Configuration;
 
 namespace TravelBlog.Services
 {
     public class ThumbnailService
     {
+        private readonly IOptions<ThumbnailOptions> options;
         private readonly SemaphoreSlim semaphore;
         private readonly DirectoryInfo thumbnailDir;
         private readonly DirectoryInfo tempDir;
 
-        public ThumbnailService()
+        public ThumbnailService(IOptions<ThumbnailOptions> options)
         {
-            semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+            this.options = options;
+            semaphore = new SemaphoreSlim(options.Value.Parallelism);
             thumbnailDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "travelblog", "thumbnails"));
             tempDir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "travelblog", "temp"));
             thumbnailDir.Create();
@@ -31,30 +36,73 @@ namespace TravelBlog.Services
             var thumbnail = new FileInfo(Path.Combine(thumbnailDir.FullName, $"{month}_{file}_{size}"));
             if (!thumbnail.Exists)
             {
-                await semaphore.WaitAsync();
-                
-                try
+                var temp = new FileInfo(Path.Combine(tempDir.FullName, Path.GetRandomFileName()));
+                using (var originalStream = new FileStream(original.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var tempStream = new FileStream(temp.FullName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
-                    var temp = new FileInfo(Path.Combine(tempDir.FullName, Path.GetRandomFileName()));
-                    Image<Rgba32> image = Image.Load<Rgba32>(original.FullName);
-                    double factor = (double)size / Math.Max(image.Width, image.Height);
+                    await semaphore.WaitAsync();
 
-                    // Omit upscaling of images but store the result for caching
-                    if (factor < 1.0)
+                    try
                     {
-                        int width = (int)Math.Round(image.Width * factor);
-                        int height = (int)Math.Round(image.Height * factor);
-                        image.Mutate(x => x.Resize(width, height));
+                        CreateThumbnail(originalStream, tempStream, size);
                     }
-                    image.Save(temp.FullName, new JpegEncoder { Quality = 85 });
-                    temp.MoveTo(thumbnail.FullName, true);
+                    finally
+                    {
+                        semaphore.Release();
+                    }
                 }
-                finally
-                {
-                    semaphore.Release();
-                }
+
+                temp.MoveTo(thumbnail.FullName, true);
             }
             return thumbnail.FullName;
+        }
+
+        private void CreateThumbnail(FileStream original, FileStream temp, int size)
+        {
+            SKBitmap? scaled = null;
+
+            try
+            {
+                using SKBitmap image = SKBitmap.Decode(original);
+                int width = image.Width, height = image.Height;
+                double factor = (double)size / Math.Max(image.Width, image.Height);
+
+                // Omit upscaling of images but store the result for caching
+                if (factor < 1.0)
+                {
+                    width = (int)Math.Round(image.Width * factor);
+                    height = (int)Math.Round(image.Height * factor);
+                    scaled = image.Resize(new SKImageInfo(width, height), SKFilterQuality.High);
+                }
+
+                using SKImage save = SKImage.FromBitmap(scaled ?? image);
+                save.Encode(SKEncodedImageFormat.Jpeg, options.Value.JpegQuality).SaveTo(temp);
+            }
+            finally
+            {
+                scaled?.Dispose();
+            }
+        }
+
+        private void CreateThumbnail2(FileStream original, FileStream temp, int size)
+        {
+            var allocator = new SixLabors.Memory.SimpleGcMemoryAllocator();
+            var config = SixLabors.ImageSharp.Configuration.Default.Clone();
+            config.MemoryAllocator = allocator;
+
+            Image<Rgba32> image = Image.Load<Rgba32>(config, original);
+            double factor = (double)size / Math.Max(image.Width, image.Height);
+
+            // Omit upscaling of images but store the result for caching
+            if (factor < 1.0)
+            {
+                int width = (int)Math.Round(image.Width * factor);
+                int height = (int)Math.Round(image.Height * factor);
+                image.Mutate(x => x.Resize(width, height));
+            }
+            image.Save(temp, new JpegEncoder { Quality = options.Value.JpegQuality });
+            image.Dispose();
+            allocator.ReleaseRetainedResources();
         }
     }
 }

@@ -11,5 +11,6 @@ namespace TravelBlog.Configuration
         public MailingOptions? MailingOptions { get; set; }
         public ProxyOptions? ProxyOptions { get; set; }
         public SiteOptions? SiteOptions { get; set; }
+        public ThumbnailOptions? ThumbnailOptions { get; set; }
     }
 }

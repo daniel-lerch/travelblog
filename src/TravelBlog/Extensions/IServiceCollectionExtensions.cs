@@ -32,6 +32,9 @@ namespace TravelBlog.Extensions
             services.AddOptions<SiteOptions>()
                 .Bind(configuration.GetSection("Site"))
                 .ValidateDataAnnotations();
+            services.AddOptions<ThumbnailOptions>()
+                .Bind(configuration.GetSection("Thumbnail"))
+                .ValidateDataAnnotations();
 
             return services;
         }

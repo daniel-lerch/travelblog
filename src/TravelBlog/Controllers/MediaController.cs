@@ -89,7 +89,7 @@ namespace TravelBlog.Controllers
 
         [Route("~/media/{month}/{file}")]
         [Authorize(Roles = SubscriberOrAdminRole)]
-        public IActionResult Media(string month, string file, [FromQuery] int size)
+        public async Task<IActionResult> Media(string month, string file, [FromQuery] int size)
         {
             var extensions = new[] { ".jpg", ".jpeg" };
             var fileInfo = new FileInfo(Path.Combine(environment.ContentRootPath, "media", month, file));
@@ -115,7 +115,7 @@ namespace TravelBlog.Controllers
             }
             else
             {
-                return PhysicalFile(thumbnail.GetThumbnail(fileInfo, size, month, file), contentType, enableRangeProcessing: true);
+                return PhysicalFile(await thumbnail.GetThumbnailAsync(fileInfo, size, month, file), contentType, enableRangeProcessing: true);
             }
         }
     }
