@@ -3,14 +3,17 @@ WORKDIR /app
 
 # Copy csproj and restore as distinct layers
 COPY src/*/*.csproj ./
-RUN dotnet restore
+RUN dotnet restore -r debian.10-x64
 
 # Copy everything else and build
 COPY . ./
-RUN dotnet publish -c Release -o /app/out
+RUN dotnet publish -c Release -r debian.10-x64 -o /app/out
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.0
+FROM debian:10-slim
 WORKDIR /app
+RUN set -x \
+	&& apt-get update \
+	&& apt-get install -y libfontconfig1
 COPY --from=build-env /app/out .
-ENTRYPOINT ["dotnet", "TravelBlog.dll"]
+ENTRYPOINT ["/app/TravelBlog"]
