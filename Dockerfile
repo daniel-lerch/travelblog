@@ -10,7 +10,7 @@ COPY . ./
 RUN dotnet publish -c Release -r debian.10-x64 -o /app/out
 
 # Build runtime image
-FROM debian:10-slim
+FROM mcr.microsoft.com/dotnet/core/runtime-deps:3.0-buster-slim
 WORKDIR /app
 RUN set -x \
 	&& apt-get update \
