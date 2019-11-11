@@ -8,20 +8,28 @@
 
 <h1>Seitenaufrufe für <a href="~/post/@Model.Post.Id">@Model.Post.Title</a></h1>
 
-<table class="table table-responsive">
-    <thead>
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Zugriff</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (PostRead read in Model.Reads)
-        {
+@if (Model.Reads.Count > 0)
+{
+    <p class="text-muted">Insgesamt @Model.Reads.Count</p>
+    <table class="table table-responsive">
+        <thead>
             <tr>
-                <td>@read.Subscriber!.GetName()</td>
-                <td>@read.AccessTime</td>
+                <th scope="col">Name</th>
+                <th scope="col">Zugriff</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (PostRead read in Model.Reads)
+            {
+                <tr>
+                    <td>@read.Subscriber!.GetName()</td>
+                    <td>@read.AccessTime</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Dieser Post wurde noch nie aufgerufen.</p>
+}

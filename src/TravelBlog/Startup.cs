@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
@@ -19,12 +21,14 @@ namespace TravelBlog
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -52,6 +56,13 @@ namespace TravelBlog
             services.AddDbContext<DatabaseContext>();
             services.AddScoped<AuthenticationService>();
             services.AddScoped<MailingService>();
+
+            if (!Environment.IsDevelopment())
+            {
+                services.AddDataProtection()
+                    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Environment.ContentRootPath, "secrets")));
+            }
+
             services.AddRouting();
             services.AddAuthentication(Constants.AuthCookieScheme)
                 .AddCookie(Constants.AuthCookieScheme, options =>

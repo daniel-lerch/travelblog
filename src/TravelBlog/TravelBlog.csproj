@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
+  
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
@@ -8,9 +8,10 @@
     <Authors>Daniel Lerch</Authors>
     <Copyright>© 2019 Daniel Lerch</Copyright>
     <PackageLicenseExpression>MIT License</PackageLicenseExpression>
+    <UserSecretsId>9eb7eda1-7c08-4fa1-aca3-363ec6bc312e</UserSecretsId>
   </PropertyGroup>
-
-
+  
+  
   <ItemGroup>
     <PackageReference Include="MailKit" Version="2.3.2" />
     <PackageReference Include="Markdig" Version="0.18.0" />
@@ -27,5 +28,5 @@
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.0" />
     <PackageReference Include="Wiry.Base32" Version="1.1.1" />
   </ItemGroup>
-
+  
 </Project>
