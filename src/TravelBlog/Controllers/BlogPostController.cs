@@ -42,6 +42,7 @@ namespace TravelBlog.Controllers
         public async Task<IActionResult> Index()
         {
             var posts = await database.BlogPosts
+                .OrderByDescending(p => p.Id)
                 .Select(p => new PostsViewModel.BlogPostPreview(p.Id, p.Title, p.PublishTime, p.Reads.Count()))
                 .ToListAsync();
             return View(new PostsViewModel(posts));

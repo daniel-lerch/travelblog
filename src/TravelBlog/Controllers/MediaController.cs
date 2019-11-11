@@ -32,15 +32,14 @@ namespace TravelBlog.Controllers
             var result = new List<(string month, string name)>();
             var extensions = new[] { ".jpg", ".jpeg", ".png" };
             var folder = new DirectoryInfo(Path.Combine(environment.ContentRootPath, "media"));
-            DirectoryInfo[] months = folder.GetDirectories();
-            for (int i = months.Length - 1; i >= 0; i--)
+
+            foreach (DirectoryInfo month in folder.EnumerateDirectories().OrderByDescending(x => x.Name))
             {
-                FileInfo[] files = months[i].GetFiles();
-                for (int j = files.Length - 1; j >= 0; j--)
+                foreach (FileInfo file in month.EnumerateFiles().OrderByDescending(x => x.Name))
                 {
-                    if (extensions.Contains(files[j].Extension))
+                    if (extensions.Contains(file.Extension))
                     {
-                        result.Add((months[i].Name, files[j].Name));
+                        result.Add((month.Name, file.Name));
                     }
                 }
             }

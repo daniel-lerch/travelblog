@@ -25,7 +25,7 @@
         }
         else
         {
-            <p class="mb-1">@post.PublishTime - <a href="~/post/@post.Id/reads">@post.ReadCount Aufrufe</a></p>
+            <p class="mb-1">@post.PublishTime.ToShortDateString() - <a href="~/post/@post.Id/reads">@post.ReadCount Aufrufe</a></p>
         }
     }
     else
