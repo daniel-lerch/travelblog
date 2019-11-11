@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
@@ -73,7 +74,10 @@ namespace TravelBlog.Controllers
                     await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
                     return StatusCode(403);
                 }
-                database.PostReads.Add(new PostRead(id: default, postId: id, subscriberId: subscriber.Id, accessTime: DateTime.Now));
+                if (!HttpContext.Request.Headers.TryGetValue("User-Agent", out StringValues userAgent))
+                    return StatusCode(400);
+                database.PostReads.Add(new PostRead(id: default, postId: id, subscriberId: subscriber.Id,
+                    accessTime: DateTime.Now, ipAddress: HttpContext.Connection.RemoteIpAddress.ToString(), userAgent: userAgent.ToString()));
                 await database.SaveChangesAsync();
             }
 
