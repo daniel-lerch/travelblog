@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Html;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
 using TravelBlog.Database.Entities;
+using TravelBlog.Extensions;
 
 namespace TravelBlog.Models
 {
@@ -16,6 +13,7 @@ namespace TravelBlog.Models
         }
 
         public BlogPost Post { get; }
+        public int WordCount => Post.Content.CountWords();
         public int ReadCount { get; }
     }
 }

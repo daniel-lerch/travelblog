@@ -13,17 +13,17 @@
     </h1>
     if (Model.Post.PublishTime == default)
     {
-        <p>Entwurf - zuletzt bearbeitet am @Model.Post.ModifyTime</p>
+        <p>Entwurf - @Model.WordCount Wörter - zuletzt bearbeitet am @Model.Post.ModifyTime</p>
     }
     else
     {
-        <p>Gepostet am @Model.Post.PublishTime - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
+        <p>Gepostet am @Model.Post.PublishTime - @Model.WordCount Wörter - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
     }
 }
 else
 {
     <h1>@Model.Post.Title</h1>
-    <p>Gepostet am @Model.Post.PublishTime - @Model.ReadCount Aufrufe bisher</p>
+    <p>Gepostet am @Model.Post.PublishTime - @Model.WordCount Wörter - @Model.ReadCount Aufrufe bisher</p>
 }
 
 @{

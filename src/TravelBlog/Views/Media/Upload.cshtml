@@ -23,7 +23,6 @@
             const fileInput = document.getElementById("files");
 
             for (let element of document.getElementsByClassName("file-drop-container")) {
-                console.log(element);
                 element.ondragenter = function (ev) {
                     this.classList.add("border-primary");
                     return false;
