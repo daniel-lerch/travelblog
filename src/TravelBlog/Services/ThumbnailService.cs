@@ -1,8 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -82,27 +78,6 @@ namespace TravelBlog.Services
             {
                 scaled?.Dispose();
             }
-        }
-
-        private void CreateThumbnail2(FileStream original, FileStream temp, int size)
-        {
-            var allocator = new SixLabors.Memory.SimpleGcMemoryAllocator();
-            var config = SixLabors.ImageSharp.Configuration.Default.Clone();
-            config.MemoryAllocator = allocator;
-
-            Image<Rgba32> image = Image.Load<Rgba32>(config, original);
-            double factor = (double)size / Math.Max(image.Width, image.Height);
-
-            // Omit upscaling of images but store the result for caching
-            if (factor < 1.0)
-            {
-                int width = (int)Math.Round(image.Width * factor);
-                int height = (int)Math.Round(image.Height * factor);
-                image.Mutate(x => x.Resize(width, height));
-            }
-            image.Save(temp, new JpegEncoder { Quality = options.Value.JpegQuality });
-            image.Dispose();
-            allocator.ReleaseRetainedResources();
         }
     }
 }
