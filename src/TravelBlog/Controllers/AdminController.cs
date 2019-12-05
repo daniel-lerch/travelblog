@@ -73,7 +73,7 @@ namespace TravelBlog.Controllers
         public async Task<IActionResult> Confirm([FromQuery] int id)
         {
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
-            if (subscriber == null)
+            if (subscriber == null || subscriber.ConfirmationTime != default || subscriber.DeletionTime != default)
                 return Redirect("~/admin?status=error");
             subscriber.ConfirmationTime = DateTime.Now;
             await database.SaveChangesAsync();
@@ -90,7 +90,7 @@ namespace TravelBlog.Controllers
                 $"Ab sofort wirst du per E-Mail über neue Einträge informiert.";
 
             string url = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
-            await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Erfolgreich registriert", mail, url);
+            await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress!, "Erfolgreich registriert", mail, url);
 
             return Redirect("~/admin?status=success");
         }
@@ -99,9 +99,18 @@ namespace TravelBlog.Controllers
         public async Task<IActionResult> Delete([FromQuery] int id)
         {
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
-            if (subscriber == null)
+            if (subscriber == null || subscriber.DeletionTime != default)
                 return Redirect("~/admin?status=error");
-            database.Subscribers.Remove(subscriber);
+            if (subscriber.ConfirmationTime == default)
+            {
+                database.Subscribers.Remove(subscriber);
+            }
+            else
+            {
+                subscriber.MailAddress = null;
+                subscriber.DeletionTime = DateTime.Now;
+                subscriber.Token = null;
+            }
             await database.SaveChangesAsync();
             return Redirect("~/admin?status=success");
         }

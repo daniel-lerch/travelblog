@@ -1,4 +1,5 @@
-﻿@using TravelBlog.Database.Entities
+﻿@using Microsoft.AspNetCore.Html
+@using TravelBlog.Database.Entities
 
 @model AdminViewModel
 @{
@@ -79,14 +80,17 @@ else
         <tbody>
             @foreach (Subscriber subscriber in Model.ConfirmedSubscribers)
             {
-                <tr>
+                <tr @if (subscriber.DeletionTime != default) { Write(new HtmlString("style=\"text-decoration: line-through;\"")); }>
                     <td>@subscriber.GivenName</td>
                     <td>@subscriber.FamilyName</td>
                     <td>@subscriber.MailAddress</td>
                     <td>
-                        <form action="" method="post" class="form-inline">
-                            <button type="submit" formaction="~/admin/delete?id=@subscriber.Id" class="btn btn-outline-danger">❌</button>
-                        </form>
+                        @if (subscriber.DeletionTime == default)
+                        {
+                            <form action="" method="post" class="form-inline">
+                                <button type="submit" formaction="~/admin/delete?id=@subscriber.Id" class="btn btn-outline-danger">❌</button>
+                            </form>
+                        }
                     </td>
                 </tr>
             }

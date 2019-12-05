@@ -185,7 +185,7 @@ namespace TravelBlog.Controllers
 
         private async Task NotifySubscribers(BlogPost post)
         {
-            List<Subscriber> subscribers = await database.Subscribers.Where(s => s.ConfirmationTime != default).ToListAsync();
+            List<Subscriber> subscribers = await database.Subscribers.Where(s => s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
             foreach (Subscriber subscriber in subscribers)
             {
                 string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={subscriber.Token}");
@@ -195,7 +195,7 @@ namespace TravelBlog.Controllers
                 string unsubscribe = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
                 try
                 {
-                    await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress, "Neuer Post", message, unsubscribe);
+                    await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress!, "Neuer Post", message, unsubscribe);
                 }
                 catch (Exception ex)
                 {

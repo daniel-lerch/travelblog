@@ -35,7 +35,7 @@ namespace TravelBlog.Controllers
             if (!ModelState.IsValid)
                 return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Deine Angaben sind unvollständig oder ungültig!"));
 
-            context.Subscribers.Add(new Subscriber(id: default, mailAddress: mailAddress, givenName: givenName, familyName: familyName, confirmationTime: default, token: RandomToken()));
+            context.Subscribers.Add(new Subscriber(mailAddress, givenName, familyName, RandomToken()));
             try
             {
                 await context.SaveChangesAsync();

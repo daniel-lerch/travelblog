@@ -37,7 +37,16 @@ namespace TravelBlog.Controllers
             if (subscriber == null)
                 return View("InvalidToken");
 
-            database.Subscribers.Remove(subscriber);
+            if (subscriber.ConfirmationTime == default)
+            {
+                database.Subscribers.Remove(subscriber);
+            }
+            else
+            {
+                subscriber.MailAddress = null;
+                subscriber.DeletionTime = DateTime.Now;
+                subscriber.Token = null;
+            }
             await database.SaveChangesAsync();
             return View("Success", new UnsubscribeViewModel(subscriber));
         }
