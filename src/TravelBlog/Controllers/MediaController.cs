@@ -47,14 +47,14 @@ namespace TravelBlog.Controllers
             return View("Index", new MediaViewModel(result));
         }
 
-        [HttpGet()]
+        [HttpGet]
         [Authorize(Roles = AdminRole)]
         public IActionResult Upload()
         {
             return View("Upload");
         }
 
-        [HttpPost()]
+        [HttpPost]
         [DisableRequestSizeLimit]
         [Authorize(Roles = AdminRole)]
         public async Task<IActionResult> Upload(IFormFileCollection files)
@@ -86,6 +86,7 @@ namespace TravelBlog.Controllers
             return View("Uploaded", new MediaUploadViewModel(status));
         }
 
+        [HttpGet][HttpHead][HttpOptions]
         [Route("~/media/{month}/{file}")]
         [Authorize(Roles = SubscriberOrAdminRole)]
         public async Task<IActionResult> Media(string month, string file, [FromQuery] int size)
@@ -115,6 +116,35 @@ namespace TravelBlog.Controllers
             else
             {
                 return PhysicalFile(await thumbnail.GetThumbnailAsync(fileInfo, size, month, file), contentType, enableRangeProcessing: true);
+            }
+        }
+
+        [HttpDelete]
+        [Route("~/media/{month}/{file}")]
+        [Authorize(Roles = AdminRole)]
+        public IActionResult Media(string month, string file)
+        {
+            var fileInfo = new FileInfo(Path.Combine(environment.ContentRootPath, "media", month, file));
+            try
+            {
+                fileInfo.Delete();
+                return StatusCode(204);
+            }
+            catch (FileNotFoundException)
+            {
+                return StatusCode(404);
+            }
+            catch (IOException)
+            {
+                return StatusCode(500);
+            }
+            catch (System.Security.SecurityException) // no permission to delete the file
+            {
+                return StatusCode(403);
+            }
+            catch (UnauthorizedAccessException) // attempting to delete a directory
+            {
+                return StatusCode(400);
             }
         }
     }

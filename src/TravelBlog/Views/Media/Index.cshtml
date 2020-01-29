@@ -18,10 +18,12 @@
             <h3>@DateTime.ParseExact(file.month, "yyMM", null).ToString("MMM yyyy")</h3>
             current = file.month;
         }
-        <figure class="figure border rounded p-1">
+        <figure class="figure border rounded p-1" data-src="@Url.Content($"~/media/{file.month}/{file.name}")">
             <!-- Do not split these elements! White spaces would destroy the layout. -->
             <div class="center-image"><img src="~/media/@file.month/@file.name?size=400" /></div>
             <figcaption class="figure-caption mt-1 mx-1">@file.name</figcaption>
+            <button role="button" class="btn d-none clipboard">📋</button>
+            <button role="button" class="btn d-none delete">🗑️</button>
         </figure>
     }
 }
@@ -48,4 +50,8 @@
                 max-height: 200px;
             }
     </style>
+}
+
+@section Scripts {
+    <script src="~/js/media.js"></script>
 }
