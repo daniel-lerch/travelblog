@@ -5,25 +5,25 @@
     <Nullable>enable</Nullable>
     <Company />
     <Authors>Daniel Lerch</Authors>
-    <Copyright>© 2019 Daniel Lerch</Copyright>
+    <Copyright>© 2019-2020 Daniel Lerch</Copyright>
     <PackageLicenseExpression>MIT License</PackageLicenseExpression>
     <UserSecretsId>9eb7eda1-7c08-4fa1-aca3-363ec6bc312e</UserSecretsId>
   </PropertyGroup>
   
   
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="2.4.1" />
-    <PackageReference Include="Markdig" Version="0.18.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
+    <PackageReference Include="MailKit" Version="2.5.0" />
+    <PackageReference Include="Markdig" Version="0.18.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
-    <PackageReference Include="SkiaSharp" Version="1.68.1" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
+    <PackageReference Include="SkiaSharp" Version="1.68.1.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.1.1" />
     <PackageReference Include="Wiry.Base32" Version="1.1.1" />
   </ItemGroup>
   
