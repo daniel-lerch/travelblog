@@ -47,13 +47,6 @@ namespace TravelBlog.Controllers
             return View("Index", new MediaViewModel(result));
         }
 
-        [HttpGet]
-        [Authorize(Roles = AdminRole)]
-        public IActionResult Upload()
-        {
-            return View("Upload");
-        }
-
         [HttpPost]
         [DisableRequestSizeLimit]
         [Authorize(Roles = AdminRole)]

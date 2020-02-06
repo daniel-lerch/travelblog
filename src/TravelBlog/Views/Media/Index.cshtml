@@ -3,9 +3,19 @@
     ViewData["Title"] = "Mediendateien";
 }
 
-<h1>Mediendateien</h1>
+<h1 class="mb-3">Mediendateien</h1>
 
-<a href="~/media/upload" class="btn btn-success">Dateien hochladen</a>
+<form enctype="multipart/form-data" action="~/media/upload" method="post">
+    <input type="file" multiple class="d-none" id="files" name="files" />
+    <div class="form-row">
+        <div class="col my-1">
+            <div class="border p-3" id="file-drop-container">Dateien zum Hochladen hierhin ziehen oder klicken</div>
+        </div>
+        <div class="col-md-auto my-1 d-none">
+            <button type="submit" class="btn btn-primary h-100" id="files-submit">Hochladen</button>
+        </div>
+    </div>
+</form>
 
 @{
     string? current = null;
