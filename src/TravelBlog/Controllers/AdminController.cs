@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,12 +21,14 @@ namespace TravelBlog.Controllers
         private readonly IOptions<SiteOptions> options;
         private readonly DatabaseContext database;
         private readonly MailingService mailer;
+        private readonly AuthenticationService authentication;
 
-        public AdminController(IOptions<SiteOptions> options, DatabaseContext database, MailingService mailer)
+        public AdminController(IOptions<SiteOptions> options, DatabaseContext database, MailingService mailer, AuthenticationService authentication)
         {
             this.options = options;
             this.database = database;
             this.mailer = mailer;
+            this.authentication = authentication;
         }
 
         [HttpGet]
@@ -42,8 +42,7 @@ namespace TravelBlog.Controllers
         {
             if (password == options.Value.AdminPassword)
             {
-                var claims = new[] { new Claim("user", username), new Claim("role", Constants.AdminRole) };
-                await HttpContext.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
+                await authentication.SignInAsync(HttpContext, username, Constants.AdminRole);
 
                 if (Url.IsLocalUrl(redirect))
                     return Redirect(redirect);
@@ -56,7 +55,7 @@ namespace TravelBlog.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
+            await authentication.SignOutAsync(HttpContext);
 
             return Redirect("~/");
         }

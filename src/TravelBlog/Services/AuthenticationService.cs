@@ -20,7 +20,19 @@ namespace TravelBlog.Services
             this.database = database;
         }
 
-        public async Task<bool> SignInAsnyc(HttpContext context, string token)
+        public Task SignInAsync(HttpContext context, string user, string role)
+        {
+            var claims = new[] { new Claim("user", user), new Claim("role", role) };
+            var properties = new AuthenticationProperties { IsPersistent = true };
+            return context.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")), properties);
+        }
+
+        public Task SignOutAsync(HttpContext context)
+        {
+            return context.SignOutAsync(Constants.AuthCookieScheme);
+        }
+
+        public async Task<bool> SignInAsync(HttpContext context, string token)
         {
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
             if (subscriber == null)
@@ -28,8 +40,7 @@ namespace TravelBlog.Services
 
             if (!context.User.IsInRole(Constants.SubscriberRole) && !context.User.IsInRole(Constants.AdminRole))
             {
-                var claims = new[] { new Claim("user", subscriber.Token), new Claim("role", Constants.SubscriberRole) };
-                await context.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")));
+                await SignInAsync(context, token, Constants.SubscriberRole);
             }
 
             return true;

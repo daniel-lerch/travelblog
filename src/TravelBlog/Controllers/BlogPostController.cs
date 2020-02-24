@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +25,10 @@ namespace TravelBlog.Controllers
         private readonly ILogger<BlogPostController> logger;
         private readonly DatabaseContext database;
         private readonly MailingService mailer;
-        private readonly Services.AuthenticationService authentication;
+        private readonly AuthenticationService authentication;
 
         public BlogPostController(IOptions<SiteOptions> options, ILogger<BlogPostController> logger,
-            DatabaseContext database, MailingService mailer, Services.AuthenticationService authentication)
+            DatabaseContext database, MailingService mailer, AuthenticationService authentication)
         {
             this.options = options;
             this.logger = logger;
@@ -52,7 +51,7 @@ namespace TravelBlog.Controllers
         [Route("~/posts/auth")]
         public async Task<IActionResult> Auth([FromQuery] string token)
         {
-            if (await authentication.SignInAsnyc(HttpContext, token))
+            if (await authentication.SignInAsync(HttpContext, token))
                 return Redirect("~/posts");
             else
                 return StatusCode(403);
@@ -71,7 +70,7 @@ namespace TravelBlog.Controllers
                 Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == HttpContext.User.FindFirstValue("user"));
                 if (subscriber == null)
                 {
-                    await HttpContext.SignOutAsync(Constants.AuthCookieScheme);
+                    await authentication.SignOutAsync(HttpContext);
                     return StatusCode(403);
                 }
                 if (!HttpContext.Request.Headers.TryGetValue("User-Agent", out StringValues userAgent))
@@ -86,7 +85,7 @@ namespace TravelBlog.Controllers
 
         public async Task<IActionResult> Auth(int id, [FromQuery] string token)
         {
-            if (await authentication.SignInAsnyc(HttpContext, token))
+            if (await authentication.SignInAsync(HttpContext, token))
                 return Redirect("~/post/" + id);
             else
                 return StatusCode(403);

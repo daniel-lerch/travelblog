@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -39,7 +37,8 @@ namespace TravelBlog
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
+                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.Secure = CookieSecurePolicy.SameAsRequest;
             });
 
             services.Configure<RequestLocalizationOptions>(options =>
@@ -70,6 +69,7 @@ namespace TravelBlog
                     options.LoginPath = "/admin/login";
                     options.AccessDeniedPath = "/admin/login";
                     options.ReturnUrlParameter = "redirect";
+                    options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
         }
