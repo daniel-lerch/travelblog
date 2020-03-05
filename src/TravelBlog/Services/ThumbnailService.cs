@@ -3,7 +3,6 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TravelBlog.Configuration;
@@ -55,29 +54,107 @@ namespace TravelBlog.Services
 
         private void CreateThumbnail(FileStream original, FileStream temp, int size)
         {
-            SKBitmap? scaled = null;
+            using SKCodec codec = SKCodec.Create(original);
+            using SKBitmap image = SKBitmap.Decode(codec);
 
-            try
+            int width = image.Width, height = image.Height;
+            double factor = (double)size / Math.Max(image.Width, image.Height);
+
+            // Omit upscaling of images but store the result for caching
+            if (factor < 1.0)
             {
-                using SKBitmap image = SKBitmap.Decode(original);
-                int width = image.Width, height = image.Height;
-                double factor = (double)size / Math.Max(image.Width, image.Height);
-
-                // Omit upscaling of images but store the result for caching
-                if (factor < 1.0)
-                {
-                    width = (int)Math.Round(image.Width * factor);
-                    height = (int)Math.Round(image.Height * factor);
-                    scaled = image.Resize(new SKImageInfo(width, height), SKFilterQuality.High);
-                }
-
-                using SKImage save = SKImage.FromBitmap(scaled ?? image);
-                save.Encode(SKEncodedImageFormat.Jpeg, options.Value.JpegQuality).SaveTo(temp);
+                width = (int)Math.Round(image.Width * factor);
+                height = (int)Math.Round(image.Height * factor);
             }
-            finally
+
+            Action<SKCanvas> transform = Rotate(codec.EncodedOrigin, ref width, ref height);
+
+            var info = new SKImageInfo(width, height);
+            using SKSurface surface = SKSurface.Create(info);
+
+            transform(surface.Canvas);
+
+            using (var paint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High })
             {
-                scaled?.Dispose();
+                surface.Canvas.DrawBitmap(image, info.Rect, paint);
             }
+
+            surface.Canvas.Flush();
+
+            using SKImage save = surface.Snapshot();
+            save.Encode(SKEncodedImageFormat.Jpeg, options.Value.JpegQuality).SaveTo(temp);
+        }
+
+        // Unfortunately we cannot copy all exif meta data: https://github.com/mono/SkiaSharp/issues/836#issuecomment-584895517
+        private Action<SKCanvas> Rotate(SKEncodedOrigin origin, ref int width, ref int height)
+        {
+            Action<SKCanvas> transform;
+            int newWidth = width;
+            int newHeight = height;
+
+            switch (origin)
+            {
+                case SKEncodedOrigin.TopLeft:
+                    transform = canvas => { };
+                    break;
+                case SKEncodedOrigin.TopRight:
+                    // flip along the x-axis
+                    transform = canvas => canvas.Scale(-1, 1, newWidth / 2, newHeight / 2);
+                    break;
+                case SKEncodedOrigin.BottomRight:
+                    transform = canvas => canvas.RotateDegrees(180, newWidth / 2, newHeight / 2);
+                    break;
+                case SKEncodedOrigin.BottomLeft:
+                    // flip along the y-axis
+                    transform = canvas => canvas.Scale(1, -1, newWidth / 2, newHeight / 2);
+                    break;
+                case SKEncodedOrigin.LeftTop:
+                    newWidth = height;
+                    newHeight = width;
+                    transform = canvas =>
+                    {
+                        // Rotate 90
+                        canvas.RotateDegrees(90, newWidth / 2, newHeight / 2);
+                        canvas.Scale((float)newHeight / newWidth, (float)-newWidth / newHeight, newWidth / 2, newHeight / 2);
+                    };
+                    break;
+                case SKEncodedOrigin.RightTop:
+                    newWidth = height;
+                    newHeight = width;
+                    transform = canvas =>
+                    {
+                        // Rotate 90
+                        canvas.RotateDegrees(90, newWidth / 2, newHeight / 2);
+                        canvas.Scale((float)newHeight / newWidth, (float)newWidth / newHeight, newWidth / 2, newHeight / 2);
+                    };
+                    break;
+                case SKEncodedOrigin.RightBottom:
+                    newWidth = height;
+                    newHeight = width;
+                    transform = canvas =>
+                    {
+                        // Rotate 90
+                        canvas.RotateDegrees(90, newWidth / 2, newHeight / 2);
+                        canvas.Scale((float)-newHeight / newWidth, (float)newWidth / newHeight, newWidth / 2, newHeight / 2);
+                    };
+                    break;
+                case SKEncodedOrigin.LeftBottom:
+                    newWidth = height;
+                    newHeight = width;
+                    transform = canvas =>
+                    {
+                        // Rotate 90
+                        canvas.RotateDegrees(90, newWidth / 2, newHeight / 2);
+                        canvas.Scale((float)-newHeight / newWidth, (float)-newWidth / newHeight, newWidth / 2, newHeight / 2);
+                    };
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            width = newWidth;
+            height = newHeight;
+            return transform;
         }
     }
 }
