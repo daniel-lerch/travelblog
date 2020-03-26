@@ -71,7 +71,12 @@ namespace TravelBlog
                     options.ReturnUrlParameter = "redirect";
                     options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 });
+#if DEBUG
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddRazorRuntimeCompilation();
+#else
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+#endif
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
