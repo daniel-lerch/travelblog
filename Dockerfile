@@ -4,7 +4,7 @@ WORKDIR /app
 # Copy csproj and restore as distinct layers
 COPY src/*/*.csproj ./
 RUN set -x \
-    && dotnet restore -c Release -r debian.10-x64 \
+    && dotnet restore -r debian.10-x64 \
     && dotnet tool install -g Microsoft.Web.LibraryManager.Cli \
     && export PATH="$PATH:/root/.dotnet/tools" \
     && libman restore --root src/TravelBlog
