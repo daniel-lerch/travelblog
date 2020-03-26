@@ -3,14 +3,15 @@ WORKDIR /app
 
 # Copy csproj and restore as distinct layers
 COPY src/*/*.csproj ./
-RUN dotnet restore -r debian.10-x64
+RUN set -x \
+    && dotnet restore -c Release -r debian.10-x64 \
+    && dotnet tool install -g Microsoft.Web.LibraryManager.Cli \
+    && export PATH="$PATH:/root/.dotnet/tools" \
+    && libman restore --root src/TravelBlog
 
 # Copy everything else and build
 COPY . ./
-RUN set -x \
-    && dotnet publish -c Release -r debian.10-x64 -o /app/out
-    && dotnet tool install -g Microsoft.Web.LibraryManager.Cli
-    && libman restore --root src/TravelBlog
+RUN dotnet publish -c Release -r debian.10-x64 -o /app/out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/core/runtime-deps:3.1-buster-slim
