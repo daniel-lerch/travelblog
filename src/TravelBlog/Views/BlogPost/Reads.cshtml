@@ -1,5 +1,6 @@
 ﻿@using TravelBlog.Database
 @using TravelBlog.Database.Entities
+@using TravelBlog.Extensions
 
 @model PostReadsViewModel
 @{
@@ -24,7 +25,7 @@
             {
                 <tr>
                     <td>@read.Subscriber!.GetName()</td>
-                    <td>@read.AccessTime</td>
+                    <td><span class="js-convert-datetime" data-timestamp="@read.AccessTime.ToUnixTimeMilliseconds()"></span></td>
                     <td>@read.IpAddress</td>
                 </tr>
             }
@@ -34,4 +35,8 @@
 else
 {
     <p>Dieser Post wurde noch nie aufgerufen.</p>
+}
+
+@section Scripts {
+    <script src="~/js/dateconverter.js" asp-append-version="true"></script>
 }
