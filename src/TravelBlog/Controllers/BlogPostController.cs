@@ -15,6 +15,7 @@ using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
+using UAParser;
 
 namespace TravelBlog.Controllers
 {
@@ -98,8 +99,20 @@ namespace TravelBlog.Controllers
             if (blog == null)
                 return StatusCode(404);
 
-            List<PostRead> reads = await database.PostReads.Where(r => r.PostId == id)
-                .Include(r => r.Subscriber).ToListAsync();
+            Parser parser = Parser.GetDefault();
+
+            var raw = await database.PostReads.Where(r => r.PostId == id)
+                .Join(database.Subscribers, r => r.SubscriberId, s => s.Id, (r, s) => new { PostRead = r, SubscriberName = s.GetName() })
+                .ToListAsync();
+
+            var reads = new List<PostReadsViewModel.Read>(raw
+                .Select(union =>
+                {
+                    ClientInfo? clientInfo = null;
+                    if (!string.IsNullOrWhiteSpace(union.PostRead.UserAgent))
+                        clientInfo = parser.Parse(union.PostRead.UserAgent);
+                    return new PostReadsViewModel.Read(union.SubscriberName, union.PostRead.AccessTime, union.PostRead.IpAddress, clientInfo);
+                }));
 
             return View(new PostReadsViewModel(blog, reads));
         }
@@ -147,7 +160,7 @@ namespace TravelBlog.Controllers
 
             return View(model);
         }
-        
+
         [HttpPost]
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Edit(int id, string title, string? content)

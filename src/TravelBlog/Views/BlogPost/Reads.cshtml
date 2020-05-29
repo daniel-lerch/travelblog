@@ -18,15 +18,23 @@
                 <th scope="col">Name</th>
                 <th scope="col">Zugriff</th>
                 <th scope="col">IP-Adresse</th>
+                <th scope="col">Gerät</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (PostRead read in Model.Reads)
+            @foreach (PostReadsViewModel.Read read in Model.Reads)
             {
                 <tr>
-                    <td>@read.Subscriber!.GetName()</td>
+                    <td>@read.SubscriberName</td>
                     <td><span class="js-convert-datetime" data-timestamp="@read.AccessTime.ToUnixTimeMilliseconds()"></span></td>
                     <td>@read.IpAddress</td>
+                    <td>
+                        @if (read.ClientInfo != null)
+                        {
+                            var ci = read.ClientInfo;
+                            Write($"{ci.UA.Family}, {ci.OS.Family} {ci.OS.Major}");
+                        }
+                    </td>
                 </tr>
             }
         </tbody>

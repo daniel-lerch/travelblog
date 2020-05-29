@@ -34,6 +34,9 @@ namespace TravelBlog.Services
 
         public async Task<bool> SignInAsync(HttpContext context, string token)
         {
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
+
             Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
             if (subscriber == null)
                 return false;
