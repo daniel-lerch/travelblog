@@ -105,14 +105,15 @@ namespace TravelBlog.Controllers
                 .Join(database.Subscribers, r => r.SubscriberId, s => s.Id, (r, s) => new { PostRead = r, SubscriberName = s.GetName() })
                 .ToListAsync();
 
-            var reads = new List<PostReadsViewModel.Read>(raw
+            var reads = raw.AsParallel().WithExecutionMode(ParallelExecutionMode.ForceParallelism)
                 .Select(union =>
                 {
                     ClientInfo? clientInfo = null;
                     if (!string.IsNullOrWhiteSpace(union.PostRead.UserAgent))
                         clientInfo = parser.Parse(union.PostRead.UserAgent);
                     return new PostReadsViewModel.Read(union.SubscriberName, union.PostRead.AccessTime, union.PostRead.IpAddress, clientInfo);
-                }));
+                })
+                .ToList();
 
             return View(new PostReadsViewModel(blog, reads));
         }
