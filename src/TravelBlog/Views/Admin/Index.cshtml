@@ -1,6 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Html
+@using Microsoft.Extensions.Options
+@using TravelBlog.Configuration
 @using TravelBlog.Database.Entities
 
+@inject IOptions<SiteOptions> SiteOptions
 @model AdminViewModel
 @{
     ViewData["Title"] = "Admin";
@@ -88,7 +91,11 @@ else
                         @if (subscriber.DeletionTime == default)
                         {
                             <form action="" method="post" class="form-inline">
-                                <button type="submit" formaction="~/admin/delete?id=@subscriber.Id" class="btn btn-outline-danger">❌</button>
+                                <button type="submit" formaction="~/admin/delete?id=@subscriber.Id" class="btn btn-outline-danger mr-1">❌</button>
+                                @if (SiteOptions.Value.EnableDebugFeatures)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary clipboard" data-token="@subscriber.Token">📋</button>
+                                }
                             </form>
                         }
                     </td>
@@ -100,4 +107,8 @@ else
 else
 {
     <p>Keine bestätigten Registrierungen.</p>
+}
+
+@section Scripts {
+    <script src="~/js/admin.js" asp-append-version="true"></script>
 }

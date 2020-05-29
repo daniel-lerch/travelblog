@@ -29,6 +29,7 @@ namespace TravelBlog.Services
             if (!options.EnableMailing)
             {
                 logger.LogWarning($"Mailing is disabled. {name}<{address}> will not receive any confirmation or notification.");
+                return;
             }
 
             var sender = new MailboxAddress(options.SenderName, options.SenderAddress);
