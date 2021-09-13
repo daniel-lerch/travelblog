@@ -37,7 +37,7 @@ namespace TravelBlog.Controllers
             {
                 foreach (FileInfo file in month.EnumerateFiles().OrderByDescending(x => x.Name))
                 {
-                    if (extensions.Contains(file.Extension))
+                    if (extensions.Contains(file.Extension.ToLowerInvariant()))
                     {
                         result.Add((month.Name, file.Name));
                     }
@@ -102,7 +102,7 @@ namespace TravelBlog.Controllers
                 contentType = "application/octet-stream";
             }
 
-            if (size == 0 || !extensions.Contains(fileInfo.Extension))
+            if (size == 0 || !extensions.Contains(fileInfo.Extension.ToLowerInvariant()))
             {
                 return PhysicalFile(fileInfo.FullName, contentType, enableRangeProcessing: true);
             }
