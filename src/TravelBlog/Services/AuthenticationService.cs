@@ -41,7 +41,7 @@ namespace TravelBlog.Services
             if (subscriber == null)
                 return false;
 
-            if (!context.User.IsInRole(Constants.SubscriberRole) && !context.User.IsInRole(Constants.AdminRole))
+            if (!context.User.IsInRole(Constants.AdminRole))
             {
                 await SignInAsync(context, token, Constants.SubscriberRole);
             }
