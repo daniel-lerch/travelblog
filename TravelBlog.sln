@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{0F036D22-332C-4B
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6E4D8CA8-2F43-4D28-8F61-6DAD8A250163}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TravelBlog.Tests", "tests\TravelBlog.Tests\TravelBlog.Tests.csproj", "{4633ABA2-16D2-4FCD-8558-542CDFDDD697}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,12 +29,17 @@ Global
 		{77AB2639-118E-4DA8-8F9E-D90265F0E2B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77AB2639-118E-4DA8-8F9E-D90265F0E2B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77AB2639-118E-4DA8-8F9E-D90265F0E2B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4633ABA2-16D2-4FCD-8558-542CDFDDD697}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4633ABA2-16D2-4FCD-8558-542CDFDDD697}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4633ABA2-16D2-4FCD-8558-542CDFDDD697}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4633ABA2-16D2-4FCD-8558-542CDFDDD697}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{77AB2639-118E-4DA8-8F9E-D90265F0E2B6} = {87CADAD9-CA5A-4C9E-8ADD-CF05882DD2B8}
+		{4633ABA2-16D2-4FCD-8558-542CDFDDD697} = {6E4D8CA8-2F43-4D28-8F61-6DAD8A250163}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {368CC88A-4BBC-4CF6-8BBD-FF9E5997EB77}

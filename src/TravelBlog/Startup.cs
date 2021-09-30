@@ -91,7 +91,6 @@ namespace TravelBlog
                 app.UseExceptionHandler("/error");
             }
 
-            app.UseMigrations();
             app.UseProxy();
 
             app.UseRequestLocalization();
