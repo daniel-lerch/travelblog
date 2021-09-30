@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <Company />
     <Authors>Daniel Lerch</Authors>
-    <Copyright>© 2019-2020 Daniel Lerch</Copyright>
+    <Copyright>© 2019-2021 Daniel Lerch</Copyright>
     <PackageLicenseExpression>MIT License</PackageLicenseExpression>
     <UserSecretsId>9eb7eda1-7c08-4fa1-aca3-363ec6bc312e</UserSecretsId>
   </PropertyGroup>
@@ -23,6 +23,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.18" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.5" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
     <PackageReference Include="SkiaSharp" Version="1.68.3" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="1.68.3" />
     <PackageReference Include="UAParser" Version="3.1.47" />
