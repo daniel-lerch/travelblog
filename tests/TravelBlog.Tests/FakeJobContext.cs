@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using TravelBlog.LightJobManager;
+using TravelBlog.Services.LightJobManager;
 
-namespace TravelBlog.Tests.LightJobManager
+namespace TravelBlog.Tests
 {
     internal class FakeJobContext : IJobContext<TaskCompletionSource<bool>>
     {
@@ -14,6 +15,12 @@ namespace TravelBlog.Tests.LightJobManager
             return Task.CompletedTask;
         }
 
+        public Task AddRange(IEnumerable<TaskCompletionSource<bool>> data)
+        {
+            storage.AddRange(data);
+            return Task.CompletedTask;
+        }
+
         public Task Remove(TaskCompletionSource<bool> data)
         {
             storage.Remove(data);
@@ -22,7 +29,8 @@ namespace TravelBlog.Tests.LightJobManager
 
         public Task<IReadOnlyCollection<TaskCompletionSource<bool>>> GetJobs()
         {
-            return Task.FromResult<IReadOnlyCollection<TaskCompletionSource<bool>>>(storage);
+            var copy = new List<TaskCompletionSource<bool>>(storage);
+            return Task.FromResult<IReadOnlyCollection<TaskCompletionSource<bool>>>(copy);
         }
 
         public Task<bool> Execute(TaskCompletionSource<bool> data)

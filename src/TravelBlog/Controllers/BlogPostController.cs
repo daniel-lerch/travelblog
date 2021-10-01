@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using TravelBlog.Configuration;
@@ -15,6 +14,7 @@ using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
+using TravelBlog.Services.LightJobManager;
 using UAParser;
 
 namespace TravelBlog.Controllers
@@ -23,18 +23,16 @@ namespace TravelBlog.Controllers
     public class BlogPostController : Controller
     {
         private readonly IOptions<SiteOptions> options;
-        private readonly ILogger<BlogPostController> logger;
         private readonly DatabaseContext database;
-        private readonly MailingService mailer;
+        private readonly JobSchedulerService<MailJob, MailJobContext> scheduler;
         private readonly AuthenticationService authentication;
 
-        public BlogPostController(IOptions<SiteOptions> options, ILogger<BlogPostController> logger,
-            DatabaseContext database, MailingService mailer, AuthenticationService authentication)
+        public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database,
+            JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication)
         {
             this.options = options;
-            this.logger = logger;
             this.database = database;
-            this.mailer = mailer;
+            this.scheduler = scheduler;
             this.authentication = authentication;
         }
 
@@ -198,23 +196,19 @@ namespace TravelBlog.Controllers
 
         private async Task NotifySubscribers(BlogPost post)
         {
-            List<Subscriber> subscribers = await database.Subscribers.Where(s => s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
-            foreach (Subscriber subscriber in subscribers)
+            List<Subscriber> subscribers = await database.Subscribers
+                .Where(s => s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
+
+            await scheduler.Enqueue(subscribers.Select(s =>
             {
-                string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={subscriber.Token}");
-                string message = $"Hey {subscriber.GivenName},\r\n" +
+                string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={s.Token}");
+                string unsubscribeUrl = Url.ContentLink("~/unsubscribe?token=" + s.Token);
+                string message = $"Hey {s.GivenName},\r\n" +
                     $"es wurde etwas neues auf {options.Value.BlogName} gepostet:\r\n" +
-                    $"{postUrl}";
-                string unsubscribe = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
-                try
-                {
-                    await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress!, "Neuer Post", message, unsubscribe);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Failed to send mail to {subscriber.MailAddress}");
-                }
-            }
+                    $"{postUrl}\r\n\r\n" +
+                    $"Du kannst dich von diesem Blog jederzeit hier abmelden: {unsubscribeUrl}";
+                return new MailJob(id: default, s.Id, subject: "Neuer Post", message);
+            }));
         }
     }
 }

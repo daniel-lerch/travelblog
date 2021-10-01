@@ -3,14 +3,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using TravelBlog.Configuration;
 
 namespace TravelBlog.Services
 {
-    public class MailingService : IAsyncDisposable
+    /// <summary>
+    /// Background service to send mails and handle rate limits and retry attempts.
+    /// </summary>
+    public class MailingService : IAsyncDisposable, IDisposable
     {
         private readonly IOptions<MailingOptions> options;
         private readonly ILogger<MailingService> logger;
@@ -22,14 +23,16 @@ namespace TravelBlog.Services
             this.logger = logger;
         }
 
-        public async Task SendMailAsync(string name, string address, string subject, string content, string unsubscribeLink)
+        public async Task<bool> SendMailAsync(string address, string name, string subject, string content)
         {
+            if (disposedValue) throw new ObjectDisposedException(nameof(MailingService));
+
             MailingOptions options = this.options.Value;
 
             if (!options.EnableMailing)
             {
-                logger.LogWarning($"Mailing is disabled. {name}<{address}> will not receive any confirmation or notification.");
-                return;
+                logger.LogWarning($"Mailing is disabled. {name} <{address}> will not receive an email.");
+                return true;
             }
 
             var sender = new MailboxAddress(options.SenderName, options.SenderAddress);
@@ -41,17 +44,47 @@ namespace TravelBlog.Services
             message.Subject = subject;
             message.Body = new TextPart("plain")
             {
-                Text = content + "\r\n\r\nWenn du keine E-Mails mehr von diesem Blog erhalten möchtest, klicke einfach auf folgenden Link: " + unsubscribeLink
+                Text = content
             };
 
-            if (client == null)
+            try
             {
-                client = new SmtpClient();
-                await client.ConnectAsync(options.SmtpHost, options.SmtpPort, options.UseSsl);
-                await client.AuthenticateAsync(options.SmtpUsername, options.SmtpPassword);
-            }
+                if (client == null)
+                {
+                    client = new SmtpClient();
+                    await client.ConnectAsync(options.SmtpHost, options.SmtpPort, options.UseSsl);
+                    await client.AuthenticateAsync(options.SmtpUsername, options.SmtpPassword);
+                }
 
-            await client.SendAsync(message);
+                // We have to handle the case of an SMTP rate limit when multiple customers are supposed to receive a mail at the same time
+                // Strato for reference only allows you to send 50 emails without delay (September 2021)
+                //
+                // RFC 821 defines common status code as 450 mailbox unavailable (busy or blocked for policy reasons)
+                // RFC 3463 defines enhanced status code as 4.7.X for persistent transient failures caused by security or policy status
+                await client.SendAsync(message);
+                return true;
+            }
+            catch (SmtpCommandException ex) when (ex.StatusCode == SmtpStatusCode.ServiceNotAvailable)
+            {
+                logger.LogInformation("SMTP session closed by server. This is most likely just a normal idle timeout.");
+                return false;
+            }
+            catch (SmtpCommandException ex) when(ex.StatusCode == SmtpStatusCode.MailboxBusy)
+            {
+                logger.LogInformation("Mailbox busy. This is most likely caused by a temporary rate limit.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Failed to send mail to {name} <{address}>.");
+                if (client != null)
+                {
+                    await client.DisconnectAsync(quit: true);
+                    client.Dispose();
+                    client = null;
+                }
+                return true;
+            }
         }
 
         #region IAsyncDisposable Support
@@ -64,6 +97,20 @@ namespace TravelBlog.Services
                 if (client != null)
                 {
                     await client.DisconnectAsync(quit: true);
+                    client.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!disposedValue)
+            {
+                if (client != null)
+                {
+                    client.Disconnect(quit: true);
                     client.Dispose();
                 }
 

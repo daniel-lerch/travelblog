@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TravelBlog.LightJobManager
+namespace TravelBlog.Services.LightJobManager
 {
     /// <summary>
     /// Generic reliable job scheduler for serial tasks with retry. This service is not safe to restart after stopping it.
@@ -28,13 +28,32 @@ namespace TravelBlog.LightJobManager
             runnerLock = new AsyncLock();
         }
 
-        public async Task Enqueue(TData data, TContext context)
+        public async Task Enqueue(TData data)
         {
             // Enqueueing new work items is possible at all times. Scaffolding will lock and validate the state before executing.
 
+            using IServiceScope scope = serviceProvider.CreateScope();
+            var context = ActivatorUtilities.CreateInstance<TContext>(scope.ServiceProvider);
             using (await runnerLock.LockAsync())
             {
                 await context.Add(data);
+                if (!runnerActive)
+                {
+                    runnerActive = true;
+                    ThreadPool.QueueUserWorkItem(StartRunner);
+                }
+            }
+        }
+
+        public async Task Enqueue(IEnumerable<TData> data)
+        {
+            // Enqueueing new work items is possible at all times. Scaffolding will lock and validate the state before executing.
+
+            using IServiceScope scope = serviceProvider.CreateScope();
+            var context = ActivatorUtilities.CreateInstance<TContext>(scope.ServiceProvider);
+            using (await runnerLock.LockAsync())
+            {
+                await context.AddRange(data);
                 if (!runnerActive)
                 {
                     runnerActive = true;
@@ -66,7 +85,7 @@ namespace TravelBlog.LightJobManager
         private async void StartRunner(object? _)
         {
             using IServiceScope scope = serviceProvider.CreateScope();
-            TContext context = ActivatorUtilities.CreateInstance<TContext>(serviceProvider);
+            var context = ActivatorUtilities.CreateInstance<TContext>(scope.ServiceProvider);
 
             while (true)
             {
@@ -83,18 +102,20 @@ namespace TravelBlog.LightJobManager
 
                 foreach (TData job in jobs)
                 {
-                    for (bool success = false; !success; await Task.Delay(TimeSpan.FromMinutes(5)))
+                    while (true)
                     {
                         lock (this)
                         {
                             if (!serviceRunning) return;
                             jobTask = ExecuteAndRemoveJob(job, context);
                         }
-                        success = await jobTask;
+                        bool success = await jobTask;
                         lock (this)
                         {
                             jobTask = null;
                         }
+                        if (success) break;
+                        await Task.Delay(TimeSpan.FromMinutes(5));
                     }
                 }
             }

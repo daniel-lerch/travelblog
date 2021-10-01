@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +11,7 @@ using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
+using TravelBlog.Services.LightJobManager;
 
 namespace TravelBlog.Controllers
 {
@@ -20,14 +20,15 @@ namespace TravelBlog.Controllers
     {
         private readonly IOptions<SiteOptions> options;
         private readonly DatabaseContext database;
-        private readonly MailingService mailer;
+        private readonly JobSchedulerService<MailJob, MailJobContext> scheduler;
         private readonly AuthenticationService authentication;
 
-        public AdminController(IOptions<SiteOptions> options, DatabaseContext database, MailingService mailer, AuthenticationService authentication)
+        public AdminController(IOptions<SiteOptions> options, DatabaseContext database,
+            JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication)
         {
             this.options = options;
             this.database = database;
-            this.mailer = mailer;
+            this.scheduler = scheduler;
             this.authentication = authentication;
         }
 
@@ -77,19 +78,18 @@ namespace TravelBlog.Controllers
             subscriber.ConfirmationTime = DateTime.Now;
             await database.SaveChangesAsync();
 
-            string mail;
-            if (await database.BlogPosts.AnyAsync()) 
-                // Give late subscribers the chance to view posts before they get the next notification mail.
-                mail = $"Hey {subscriber.GivenName},\r\n" +
-                $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n" +
-                $"Es wurden bereits Posts veröffentlicht: {Url.ContentLink($"~/posts/auth?token={subscriber.Token}")}";
-            else
-                mail = $"Hey {subscriber.GivenName},\r\n" +
-                $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n" +
-                $"Ab sofort wirst du per E-Mail über neue Einträge informiert.";
+            string mail = $"Hey {subscriber.GivenName},\r\n" +
+                $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n";
 
-            string url = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
-            await mailer.SendMailAsync(subscriber.GetName(), subscriber.MailAddress!, "Erfolgreich registriert", mail, url);
+            if (await database.BlogPosts.AnyAsync(p => p.PublishTime != default)) 
+                // Give late subscribers the chance to view posts before they get the next notification mail.
+                mail += $"Es wurden bereits Posts veröffentlicht: {Url.ContentLink($"~/posts/auth?token={subscriber.Token}")}\r\n";
+            else
+                mail += $"Ab sofort wirst du per E-Mail über neue Einträge informiert.\r\n";
+
+            mail += $"\r\nDu kannst dich von diesem Blog jederzeit hier abmelden: {Url.ContentLink("~/unsubscribe?token=" + subscriber.Token)}";
+
+            await scheduler.Enqueue(new MailJob(default, subscriber.Id, subject: "Erfolgreich registriert", mail));
 
             return Redirect("~/admin?status=success");
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
@@ -12,8 +11,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TravelBlog.Database;
+using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Services;
+using TravelBlog.Services.LightJobManager;
 
 namespace TravelBlog
 {
@@ -55,6 +56,9 @@ namespace TravelBlog
             services.AddDbContext<DatabaseContext>();
             services.AddScoped<AuthenticationService>();
             services.AddScoped<MailingService>();
+
+            services.AddSingleton<JobSchedulerService<MailJob, MailJobContext>>();
+            services.AddHostedService(serviceProvider => serviceProvider.GetRequiredService<JobSchedulerService<MailJob, MailJobContext>>());
 
             if (!Environment.IsDevelopment())
             {
