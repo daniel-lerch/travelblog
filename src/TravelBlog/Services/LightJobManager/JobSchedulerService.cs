@@ -84,6 +84,14 @@ namespace TravelBlog.Services.LightJobManager
 
         private async void StartRunner(object? _)
         {
+            while (!await AttemptExecution())
+            {
+                await Task.Delay(TimeSpan.FromMinutes(5));
+            }
+        }
+
+        private async Task<bool> AttemptExecution()
+        {
             using IServiceScope scope = serviceProvider.CreateScope();
             var context = ActivatorUtilities.CreateInstance<TContext>(scope.ServiceProvider);
 
@@ -96,7 +104,7 @@ namespace TravelBlog.Services.LightJobManager
                     if (jobs.Count == 0)
                     {
                         runnerActive = false;
-                        return;
+                        return true;
                     }
                 }
 
@@ -106,7 +114,7 @@ namespace TravelBlog.Services.LightJobManager
                     {
                         lock (this)
                         {
-                            if (!serviceRunning) return;
+                            if (!serviceRunning) return true;
                             jobTask = ExecuteAndRemoveJob(job, context);
                         }
                         bool success = await jobTask;
@@ -115,7 +123,8 @@ namespace TravelBlog.Services.LightJobManager
                             jobTask = null;
                         }
                         if (success) break;
-                        await Task.Delay(TimeSpan.FromMinutes(5));
+                        // Indicate runner to pause for a timeout and execute again
+                        return false;
                     }
                 }
             }

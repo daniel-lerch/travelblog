@@ -62,6 +62,7 @@ namespace TravelBlog.Services
                 // RFC 821 defines common status code as 450 mailbox unavailable (busy or blocked for policy reasons)
                 // RFC 3463 defines enhanced status code as 4.7.X for persistent transient failures caused by security or policy status
                 await client.SendAsync(message);
+                logger.LogInformation($"Successfully sent email to {address}.");
                 return true;
             }
             catch (SmtpCommandException ex) when (ex.StatusCode == SmtpStatusCode.ServiceNotAvailable)
