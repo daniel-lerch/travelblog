@@ -5,10 +5,10 @@
 
 <h1>Post erstellen</h1>
 
-<form method="post">
+<form action="~/post/create" method="post" id="dangerous-form">
     <div class="form-group">
         <label for="title">Titel</label>
-        <input type="text" class="form-control" id="title" name="title" autocomplete="off" />
+        <input type="text" class="form-control" id="title" name="title" required autocomplete="off" />
     </div>
     <div class="form-group">
         <label for="content">Inhalt</label>
@@ -22,5 +22,7 @@
         <label for="listed" class="form-check-label">Post in der Übersicht anzeigen</label>
     </div>
     <button type="submit" formaction="~/post/draft" class="btn btn-secondary">Entwurf speichern</button>
-    <button type="submit" formaction="~/post/create" class="btn btn-primary">Posten</button>
+    <button type="button" onclick="if ($('#dangerous-form').get(0).reportValidity()) { $('#confirm-submit').modal() }" class="btn btn-primary">Posten</button>
 </form>
+
+<partial name="_PublishModal.cshtml" />
