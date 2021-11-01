@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using TravelBlog.Database.Entities;
 
 namespace TravelBlog.Models
 {
@@ -17,18 +14,20 @@ namespace TravelBlog.Models
 
         public class BlogPostPreview
         {
-            public BlogPostPreview(int id, string title, DateTime publishTime, int readCount)
+            public BlogPostPreview(int id, string title, DateTime publishTime, bool listed, int readCount)
             {
                 Id = id;
                 Title = title;
                 PublishTime = publishTime;
+                Listed = listed;
                 ReadCount = readCount;
             }
 
             public int Id { get; }
             public string Title { get; }
-            public DateTime PublishTime { get; set; }
-            public int ReadCount { get; set; }
+            public DateTime PublishTime { get; }
+            public bool Listed { get; }
+            public int ReadCount { get; }
         }
     }
 }

@@ -42,7 +42,7 @@ namespace TravelBlog.Controllers
         {
             var posts = await database.BlogPosts
                 .OrderByDescending(p => p.Id)
-                .Select(p => new PostsViewModel.BlogPostPreview(p.Id, p.Title, p.PublishTime, p.Reads.Count()))
+                .Select(p => new PostsViewModel.BlogPostPreview(p.Id, p.Title, p.PublishTime, p.Listed, p.Reads.Count()))
                 .ToListAsync();
             return View(new PostsViewModel(posts));
         }
@@ -125,9 +125,9 @@ namespace TravelBlog.Controllers
 
         [HttpPost("~/post/draft")]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Draft(string title, string? content)
+        public async Task<IActionResult> Draft(string title, string? content, bool listed)
         {
-            var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: default, modifyTime: DateTime.Now);
+            var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: default, modifyTime: DateTime.Now, listed);
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 
@@ -136,9 +136,9 @@ namespace TravelBlog.Controllers
 
         [HttpPost("~/post/create")]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Create(string title, string? content)
+        public async Task<IActionResult> Create(string title, string? content, bool listed)
         {
-            var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: DateTime.Now, modifyTime: default);
+            var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: DateTime.Now, modifyTime: default, listed);
             database.BlogPosts.Add(post);
             await database.SaveChangesAsync();
 
@@ -162,7 +162,7 @@ namespace TravelBlog.Controllers
 
         [HttpPost]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Edit(int id, string title, string? content)
+        public async Task<IActionResult> Edit(int id, string title, string? content, bool listed)
         {
             BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
             if (post == null)
@@ -171,13 +171,15 @@ namespace TravelBlog.Controllers
             post.Title = title;
             post.Content = content ?? string.Empty;
             post.ModifyTime = DateTime.Now;
+            post.Listed = listed;
             await database.SaveChangesAsync();
+
             return Redirect("~/post/" + id);
         }
 
         [HttpPost]
         [Authorize(Roles = Constants.AdminRole)]
-        public async Task<IActionResult> Publish(int id, string title, string? content)
+        public async Task<IActionResult> Publish(int id, string title, string? content, bool listed)
         {
             BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
             if (post == null)
@@ -187,6 +189,7 @@ namespace TravelBlog.Controllers
             post.Content = content ?? string.Empty;
             post.PublishTime = DateTime.Now;
             post.ModifyTime = default;
+            post.Listed = listed;
             await database.SaveChangesAsync();
 
             await NotifySubscribers(post);

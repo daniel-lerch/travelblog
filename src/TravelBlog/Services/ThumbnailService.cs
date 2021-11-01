@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using NetVips;
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +34,8 @@ namespace TravelBlog.Services
 
                 try
                 {
-                    CreateThumbnail(original.FullName, temp.FullName, size);
+                    using var thumbnailImage = Image.Thumbnail(original.FullName, size, size, size: Enums.Size.Down);
+                    thumbnailImage.Jpegsave(temp.FullName, options.Value.JpegQuality);
                 }
                 finally
                 {
@@ -45,19 +45,6 @@ namespace TravelBlog.Services
                 temp.MoveTo(thumbnail.FullName, true);
             }
             return thumbnail.FullName;
-        }
-
-        private void CreateThumbnail(string sourceFilePath, string destinationFilePath, int size)
-        {
-            using var source = Image.NewFromFile(sourceFilePath, access: Enums.Access.Sequential);
-
-            // Omit upscaling of images but store the result for caching
-            double factor = Math.Min(1.0, (double)size / Math.Max(source.Width, source.Height));
-
-            using var resized = source.Resize(factor, Enums.Kernel.Lanczos3);
-
-            using var thumbnail = NetVips.Image.Thumbnail(sourceFilePath, size, size, size: Enums.Size.Down);
-            thumbnail.Jpegsave(destinationFilePath, options.Value.JpegQuality);
         }
     }
 }

@@ -12,22 +12,24 @@
     <a class="btn btn-success mb-2" href="~/post/create">Neuer Post</a>
 }
 
-@foreach (var post in Model.Posts.Where(x => Context.User.IsInRole(Constants.AdminRole) || x.PublishTime != default))
+@foreach (var post in Model.Posts.Where(x => Context.User.IsInRole(Constants.AdminRole) || (x.PublishTime != default && x.Listed)))
 {
     <div class="border rounded pt-2 pb-2 pl-3 mb-2">
         @if (Context.User.IsInRole(Constants.AdminRole))
         {
             <h3>
-                <a href="~/post/@post.Id">@post.Title</a>
+                <a href="~/post/@post.Id" class="@(post.Listed ? string.Empty : "text-secondary")">@post.Title</a>
                 <a class="btn btn-light" href="~/post/@post.Id/edit">✏️</a>
             </h3>
             if (post.PublishTime == default)
             {
-                <p class="mb-1">Entwurf</p>
+                <p class="mb-1 @(post.Listed ? string.Empty : "text-secondary")">Entwurf</p>
             }
             else
             {
-                <p class="mb-1"><span class="js-convert-date" data-timestamp="@post.PublishTime.ToUnixTimeMilliseconds()"></span> - <a href="~/post/@post.Id/reads">@post.ReadCount Aufrufe</a></p>
+                <p class="mb-1 @(post.Listed ? string.Empty : "text-secondary")">
+                    <span class="js-convert-date" data-timestamp="@post.PublishTime.ToUnixTimeMilliseconds()"></span> - <a href="~/post/@post.Id/reads">@post.ReadCount Aufrufe</a>
+                </p>
             }
         }
         else
