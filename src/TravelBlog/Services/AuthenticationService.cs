@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TravelBlog.Database;
@@ -37,8 +34,8 @@ namespace TravelBlog.Services
             if (string.IsNullOrWhiteSpace(token))
                 return false;
 
-            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber == null)
+            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+            if (subscriber is null)
                 return false;
 
             if (!context.User.IsInRole(Constants.AdminRole))

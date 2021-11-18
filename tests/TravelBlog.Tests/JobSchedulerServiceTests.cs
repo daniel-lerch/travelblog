@@ -1,15 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections;
 using System.Threading.Tasks;
 using TravelBlog.Services.LightJobManager;
+using Xunit;
 
 namespace TravelBlog.Tests
 {
-    [TestClass]
     public class JobSchedulerServiceTests
     {
-        [TestMethod]
+        [Fact]
         public async Task TestStart()
         {
             var context = new FakeJobContext();
@@ -19,14 +17,14 @@ namespace TravelBlog.Tests
 
             await jobScheduler.StartAsync(default);
             await jobScheduler.Enqueue(data);
-            CollectionAssert.AreEqual(new[] { data }, (ICollection)await context.GetJobs());
+            Assert.Equal(new[] { data }, await context.GetJobs());
             data.SetResult(true);
             await Task.Delay(50);
-            Assert.AreEqual(0, (await context.GetJobs()).Count);
+            Assert.Equal(0, (await context.GetJobs()).Count);
             await jobScheduler.StopAsync(default);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TestStop()
         {
             var context = new FakeJobContext();
@@ -36,17 +34,17 @@ namespace TravelBlog.Tests
 
             await jobScheduler.StartAsync(default);
             await jobScheduler.Enqueue(data);
-            CollectionAssert.AreEqual(new[] { data }, (ICollection)await context.GetJobs());
+            Assert.Equal(new[] { data }, await context.GetJobs());
             await Task.Delay(50);
             Task stop = jobScheduler.StopAsync(default);
             await Task.Delay(50);
-            Assert.IsFalse(stop.IsCompleted);
+            Assert.False(stop.IsCompleted);
             data.SetResult(true);
             await stop;
-            Assert.AreEqual(0, (await context.GetJobs()).Count);
+            Assert.Equal(0, (await context.GetJobs()).Count);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TestStartMultiple()
         {
             var context = new FakeJobContext();
@@ -56,12 +54,12 @@ namespace TravelBlog.Tests
 
             await jobScheduler.StartAsync(default);
             await jobScheduler.Enqueue(data);
-            CollectionAssert.AreEqual(data, (ICollection)await context.GetJobs());
+            Assert.Equal(data, await context.GetJobs());
             for (int i = 0; i < data.Length; i++)
             {
                 data[i].SetResult(true);
                 await Task.Delay(50);
-                Assert.AreEqual(data.Length - i - 1, (await context.GetJobs()).Count);
+                Assert.Equal(data.Length - i - 1, (await context.GetJobs()).Count);
             }
             await jobScheduler.StopAsync(default);
         }

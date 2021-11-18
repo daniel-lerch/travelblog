@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,8 +21,8 @@ namespace TravelBlog.Controllers
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] string token)
         {
-            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber == null)
+            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+            if (subscriber is null)
                 return View("InvalidToken");
 
             return View("Pending", new UnsubscribeViewModel(subscriber));
@@ -33,8 +31,8 @@ namespace TravelBlog.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromQuery] string token)
         {
-            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber == null)
+            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+            if (subscriber is null)
                 return View("InvalidToken");
 
             if (subscriber.ConfirmationTime == default)

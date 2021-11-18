@@ -97,7 +97,7 @@ namespace TravelBlog.Controllers
             };
 
             var mimeProvider = new FileExtensionContentTypeProvider();
-            if (!mimeProvider.TryGetContentType(fileInfo.Name, out string contentType))
+            if (!mimeProvider.TryGetContentType(fileInfo.Name, out string? contentType))
             {
                 contentType = "application/octet-stream";
             }

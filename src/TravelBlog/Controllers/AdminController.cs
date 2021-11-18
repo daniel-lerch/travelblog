@@ -72,8 +72,8 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Confirm([FromQuery] int id)
         {
-            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
-            if (subscriber == null || subscriber.ConfirmationTime != default || subscriber.DeletionTime != default)
+            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
+            if (subscriber is null || subscriber.ConfirmationTime != default || subscriber.DeletionTime != default)
                 return Redirect("~/admin?status=error");
             subscriber.ConfirmationTime = DateTime.Now;
             await database.SaveChangesAsync();
@@ -97,8 +97,8 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Delete([FromQuery] int id)
         {
-            Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
-            if (subscriber == null || subscriber.DeletionTime != default)
+            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
+            if (subscriber is null || subscriber.DeletionTime != default)
                 return Redirect("~/admin?status=error");
             if (subscriber.ConfirmationTime == default)
             {

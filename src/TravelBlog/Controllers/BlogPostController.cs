@@ -42,7 +42,7 @@ namespace TravelBlog.Controllers
         {
             var posts = await database.BlogPosts
                 .OrderByDescending(p => p.Id)
-                .Select(p => new PostsViewModel.BlogPostPreview(p.Id, p.Title, p.PublishTime, p.Listed, p.Reads.Count()))
+                .Select(p => new PostsViewModel.BlogPostPreview(p.Id, p.Title, p.PublishTime, p.Listed, p.Reads!.Count()))
                 .ToListAsync();
             return View(new PostsViewModel(posts));
         }
@@ -59,15 +59,15 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.SubscriberOrAdminRole)]
         public async Task<IActionResult> Index(int id)
         {
-            PostViewModel model = await database.BlogPosts.Where(p => p.Id == id)
-                .Select(p => new PostViewModel(p, p.Reads.Count()))
+            PostViewModel? model = await database.BlogPosts.Where(p => p.Id == id)
+                .Select(p => new PostViewModel(p, p.Reads!.Count()))
                 .SingleOrDefaultAsync();
-            if (model == null)
+            if (model is null)
                 return StatusCode(404);
             if (HttpContext.User.IsInRole(Constants.SubscriberRole))
             {
-                Subscriber subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == HttpContext.User.FindFirstValue("user"));
-                if (subscriber == null)
+                Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == HttpContext.User.FindFirstValue("user"));
+                if (subscriber is null)
                 {
                     await authentication.SignOutAsync(HttpContext);
                     return StatusCode(403);
@@ -75,7 +75,7 @@ namespace TravelBlog.Controllers
                 if (!HttpContext.Request.Headers.TryGetValue("User-Agent", out StringValues userAgent))
                     return StatusCode(400);
                 database.PostReads.Add(new PostRead(id: default, postId: id, subscriberId: subscriber.Id,
-                    accessTime: DateTime.Now, ipAddress: HttpContext.Connection.RemoteIpAddress.ToString(), userAgent: userAgent.ToString()));
+                    accessTime: DateTime.Now, ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString(), userAgent: userAgent.ToString()));
                 await database.SaveChangesAsync();
             }
 
@@ -93,8 +93,8 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Reads(int id)
         {
-            BlogPost blog = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
-            if (blog == null)
+            BlogPost? blog = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (blog is null)
                 return StatusCode(404);
 
             Parser parser = Parser.GetDefault();
@@ -151,10 +151,10 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Edit(int id)
         {
-            PostViewModel model = await database.BlogPosts.Where(p => p.Id == id)
-                .Select(p => new PostViewModel(p, p.Reads.Count()))
+            PostViewModel? model = await database.BlogPosts.Where(p => p.Id == id)
+                .Select(p => new PostViewModel(p, p.Reads!.Count()))
                 .SingleOrDefaultAsync();
-            if (model == null)
+            if (model is null)
                 return StatusCode(404);
 
             return View(model);
@@ -164,8 +164,8 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Edit(int id, string title, string? content, bool listed)
         {
-            BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
-            if (post == null)
+            BlogPost? post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (post is null)
                 return StatusCode(404);
 
             post.Title = title;
@@ -181,8 +181,8 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Publish(int id, string title, string? content, bool listed)
         {
-            BlogPost post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
-            if (post == null)
+            BlogPost? post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (post is null)
                 return StatusCode(404);
 
             post.Title = title;
