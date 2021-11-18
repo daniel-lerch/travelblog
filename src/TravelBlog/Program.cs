@@ -43,6 +43,7 @@ namespace TravelBlog
             });
 
             builder.Services.AddSingleton<ThumbnailService>();
+            builder.Services.AddSingleton<MarkdownService>();
             builder.Services.AddDbContext<DatabaseContext>();
             builder.Services.AddScoped<AuthenticationService>();
             builder.Services.AddScoped<MailingService>();

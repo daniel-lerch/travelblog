@@ -26,14 +26,16 @@ namespace TravelBlog.Controllers
         private readonly DatabaseContext database;
         private readonly JobSchedulerService<MailJob, MailJobContext> scheduler;
         private readonly AuthenticationService authentication;
+        private readonly MarkdownService markdown;
 
-        public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database,
-            JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication)
+        public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database, 
+            JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication, MarkdownService markdown)
         {
             this.options = options;
             this.database = database;
             this.scheduler = scheduler;
             this.authentication = authentication;
+            this.markdown = markdown;
         }
 
         [Route("~/posts")]
@@ -59,11 +61,12 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.SubscriberOrAdminRole)]
         public async Task<IActionResult> Index(int id)
         {
-            PostViewModel? model = await database.BlogPosts.Where(p => p.Id == id)
-                .Select(p => new PostViewModel(p, p.Reads!.Count()))
+            var post = await database.BlogPosts.Where(p => p.Id == id)
+                .Select(p => new { Post = p, Reads = p.Reads!.Count() })
                 .SingleOrDefaultAsync();
-            if (model is null)
+            if (post is null)
                 return StatusCode(404);
+
             if (HttpContext.User.IsInRole(Constants.SubscriberRole))
             {
                 Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == HttpContext.User.FindFirstValue("user"));
@@ -79,6 +82,7 @@ namespace TravelBlog.Controllers
                 await database.SaveChangesAsync();
             }
 
+            PostViewModel model = new(post.Post, post.Reads, post.Post.Content.CountWords(), markdown.ToHtml(post.Post.Content));
             return View("Post", model);
         }
 
@@ -151,13 +155,11 @@ namespace TravelBlog.Controllers
         [Authorize(Roles = Constants.AdminRole)]
         public async Task<IActionResult> Edit(int id)
         {
-            PostViewModel? model = await database.BlogPosts.Where(p => p.Id == id)
-                .Select(p => new PostViewModel(p, p.Reads!.Count()))
-                .SingleOrDefaultAsync();
-            if (model is null)
+            BlogPost? post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
+            if (post is null)
                 return StatusCode(404);
 
-            return View(model);
+            return View(new PostEditViewModel(post));
         }
 
         [HttpPost]

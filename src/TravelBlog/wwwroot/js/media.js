@@ -59,7 +59,7 @@ $(".clipboard").click(function (e) {
     if (!navigator.clipboard) {
         alert("Dein Browser unterstützt die aktuelle Clipboard-API nicht 😟");
     }
-    const html = "<a href=\"" + src + "\"><img src=\"" + src + "?size=1600\" alt=\"\" class=\"w-100\"></a>";
+    const html = "[![](" + src + "?size=1600)](" + src + ")";
     navigator.clipboard.writeText(html);
 });
 
