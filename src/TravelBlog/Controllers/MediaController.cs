@@ -30,7 +30,7 @@ namespace TravelBlog.Controllers
         public IActionResult Index()
         {
             var result = new List<(string month, string name)>();
-            var extensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extensions = new[] { ".jpg", ".jpeg", ".png", ".mp4" };
             var folder = new DirectoryInfo(Path.Combine(environment.ContentRootPath, "media"));
 
             foreach (DirectoryInfo month in folder.EnumerateDirectories().OrderByDescending(x => x.Name))

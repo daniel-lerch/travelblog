@@ -1,71 +1,79 @@
 ﻿@model MediaViewModel
 @{
-    // .NET 6 does not allow to enforce callers to pass a view model:
-    // https://github.com/dotnet/aspnetcore/issues/37510
-    if (Model is null) throw new ArgumentNullException(nameof(Model));
+	// .NET 6 does not allow to enforce callers to pass a view model:
+	// https://github.com/dotnet/aspnetcore/issues/37510
+	if (Model is null) throw new ArgumentNullException(nameof(Model));
 
-    ViewData["Title"] = "Mediendateien";
+	ViewData["Title"] = "Mediendateien";
 }
 
 <h1 class="mb-3">Mediendateien</h1>
 
 <form enctype="multipart/form-data" action="~/media/upload" method="post">
-    <input type="file" multiple class="d-none" id="files" name="files" />
-    <div class="form-row">
-        <div class="col my-1">
-            <div class="border p-3" id="file-drop-container">Dateien zum Hochladen hierhin ziehen oder klicken</div>
-        </div>
-        <div class="col-md-auto my-1 d-none">
-            <button type="submit" class="btn btn-primary h-100" id="files-submit">Hochladen</button>
-        </div>
-    </div>
+	<input type="file" multiple class="d-none" id="files" name="files" />
+	<div class="form-row">
+		<div class="col my-1">
+			<div class="border p-3" id="file-drop-container">Dateien zum Hochladen hierhin ziehen oder klicken</div>
+		</div>
+		<div class="col-md-auto my-1 d-none">
+			<button type="submit" class="btn btn-primary h-100" id="files-submit">Hochladen</button>
+		</div>
+	</div>
 </form>
 
 @{
-    string? current = null;
+	string? current = null;
 
-    foreach (var file in Model.Files)
-    {
-        if (file.month != current)
-        {
-            <hr />
-            <h3>@DateTime.ParseExact(file.month, "yyMM", null).ToString("MMM yyyy")</h3>
-            current = file.month;
-        }
-        <figure class="figure border rounded p-1" data-src="@Url.Content($"~/media/{file.month}/{file.name}")">
-            <!-- Do not split these elements! White spaces would destroy the layout. -->
-            <div class="center-image"><img src="~/media/@file.month/@file.name?size=400" /></div>
-            <figcaption class="figure-caption mt-1 mx-1">@file.name</figcaption>
-            <button role="button" class="btn d-none clipboard">📋</button>
-            <button role="button" class="btn d-none delete">🗑️</button>
-        </figure>
-    }
+	foreach (var file in Model.Files)
+	{
+		if (file.month != current)
+		{
+			<hr />
+			<h3>@DateTime.ParseExact(file.month, "yyMM", null).ToString("MMM yyyy")</h3>
+			current = file.month;
+		}
+		<figure class="figure border rounded p-1" data-src="@Url.Content($"~/media/{file.month}/{file.name}")">
+			<div class="center-image">
+				@if (file.name.EndsWith(".mp4"))
+				{
+					<img src="~/video.png" />
+				}
+				else
+				{
+					<img src="~/media/@file.month/@file.name?size=400" />
+				}
+			</div>
+			<figcaption class="figure-caption mt-1 mx-1">@file.name</figcaption>
+			<button role="button" class="btn d-none clipboard">📋</button>
+			<button role="button" class="btn d-none delete">🗑️</button>
+		</figure>
+	}
 }
 
 @section Styles {
-    <style>
-        .center-image {
-            width: 200px;
-            height: 200px;
-            text-align: center;
-            white-space: nowrap;
-        }
+<style>
+	.center-image {
+		display: flex;
+		width: 200px;
+		height: 200px;
+		align-items: center;
+		justify-content: center;
+	}
 
-            .center-image::before {
-                content: "";
-                display: inline-block;
-                height: 100%;
-                vertical-align: middle;
-            }
+		.center-image img {
+			max-width: 200px;
+			max-height: 200px;
+		}
 
-            .center-image img {
-                vertical-align: middle;
-                max-width: 200px;
-                max-height: 200px;
-            }
-    </style>
+	.figure-caption {
+		text-overflow: ellipsis;
+		overflow: hidden;
+		width: 200px;
+		white-space: nowrap;
+	}
+</style>
 }
 
 @section Scripts {
-    <script src="~/js/media.js" asp-append-version="true"></script>
+<script src="~/js/media.js" asp-append-version="true"></script>
 }

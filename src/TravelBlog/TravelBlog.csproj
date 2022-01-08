@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <Company />
     <Authors>Daniel Lerch</Authors>
-    <Copyright>© 2019-2021 Daniel Lerch</Copyright>
+    <Copyright>© 2019-2022 Daniel Lerch</Copyright>
     <PackageLicenseExpression>MIT License</PackageLicenseExpression>
     <UserSecretsId>9eb7eda1-7c08-4fa1-aca3-363ec6bc312e</UserSecretsId>
   </PropertyGroup>
@@ -14,12 +14,12 @@
   <ItemGroup>
     <PackageReference Include="MailKit" Version="2.15.0" />
     <PackageReference Include="Markdig" Version="0.26.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.0" Condition="'$(Configuration)' == 'Debug'" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
     <PackageReference Include="NetVips" Version="2.0.1" />
     <PackageReference Include="NetVips.Native" Version="8.11.4" />

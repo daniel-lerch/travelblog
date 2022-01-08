@@ -59,7 +59,12 @@ $(".clipboard").click(function (e) {
     if (!navigator.clipboard) {
         alert("Dein Browser unterstützt die aktuelle Clipboard-API nicht 😟");
     }
-    const html = "[![](" + src + "?size=1600)](" + src + ")";
+    let html;
+    if (src.endsWith(".mp4")) {
+        html = "<video width=\"100%\" controls><source src=\"" + src + "\" type=\"video/mp4\"></video>"
+    } else {
+        html = "[![](" + src + "?size=1600)](" + src + ")";
+    }
     navigator.clipboard.writeText(html);
 });
 
