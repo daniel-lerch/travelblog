@@ -11,6 +11,7 @@ using System.IO;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
+using TravelBlog.Hosting;
 using TravelBlog.Services;
 using TravelBlog.Services.LightJobManager;
 
@@ -94,6 +95,7 @@ namespace TravelBlog
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
+            app.UseSpa(spa => spa.UseVueSpaFileProvider());
             app.Run();
         }
     }
