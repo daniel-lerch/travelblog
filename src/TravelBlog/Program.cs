@@ -75,6 +75,8 @@ namespace TravelBlog
 
             var app = builder.Build();
 
+            app.MigrateDatabase();
+
             if (builder.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
