@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace TravelBlog.Configuration
+namespace TravelBlog.Configuration;
+
+public class SiteOptions
 {
-    public class SiteOptions
-    {
-        [Required] public string? BlogName { get; set; }
-        [Required] public string? AdminPassword { get; set; }
-        public bool EnableDebugFeatures { get; set; }
-    }
+    [Required] public string? BlogName { get; set; }
+    [Required] public string? AdminPassword { get; set; }
+    public bool EnableDebugFeatures { get; set; }
 }

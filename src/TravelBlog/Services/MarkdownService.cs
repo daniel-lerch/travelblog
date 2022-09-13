@@ -4,45 +4,44 @@ using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 
-namespace TravelBlog.Services
+namespace TravelBlog.Services;
+
+public class MarkdownService
 {
-    public class MarkdownService
+    private readonly MarkdownPipeline pipeline;
+
+    public MarkdownService()
     {
-        private readonly MarkdownPipeline pipeline;
+        MarkdownPipelineBuilder builder = new();
+        builder.Use<ImgClassExtension>();
+        pipeline = builder.Build();
+    }
 
-        public MarkdownService()
+    public string ToHtml(string markdown)
+    {
+        return Markdown.ToHtml(markdown, pipeline);
+    }
+
+    private class ImgClassExtension : IMarkdownExtension
+    {
+        public void Setup(MarkdownPipelineBuilder pipeline)
         {
-            MarkdownPipelineBuilder builder = new();
-            builder.Use<ImgClassExtension>();
-            pipeline = builder.Build();
+            // Make sure we don't have a delegate twice
+            pipeline.DocumentProcessed -= PipelineOnDocumentProcessed;
+            pipeline.DocumentProcessed += PipelineOnDocumentProcessed;
         }
 
-        public string ToHtml(string markdown)
+        public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)
         {
-            return Markdown.ToHtml(markdown, pipeline);
         }
 
-        private class ImgClassExtension : IMarkdownExtension
+        private static void PipelineOnDocumentProcessed(MarkdownDocument document)
         {
-            public void Setup(MarkdownPipelineBuilder pipeline)
+            foreach (var node in document.Descendants())
             {
-                // Make sure we don't have a delegate twice
-                pipeline.DocumentProcessed -= PipelineOnDocumentProcessed;
-                pipeline.DocumentProcessed += PipelineOnDocumentProcessed;
-            }
-
-            public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)
-            {
-            }
-
-            private static void PipelineOnDocumentProcessed(MarkdownDocument document)
-            {
-                foreach (var node in document.Descendants())
+                if (node is LinkInline link && link.IsImage)
                 {
-                    if (node is LinkInline link && link.IsImage)
-                    {
-                        link.GetAttributes().AddClass("markdown-img");
-                    }
+                    link.GetAttributes().AddClass("markdown-img");
                 }
             }
         }
