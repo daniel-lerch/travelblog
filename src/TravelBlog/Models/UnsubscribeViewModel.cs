@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using TravelBlog.Database.Entities;
+﻿using TravelBlog.Database.Entities;
 
-namespace TravelBlog.Models
+namespace TravelBlog.Models;
+
+public class UnsubscribeViewModel
 {
-    public class UnsubscribeViewModel
+    public UnsubscribeViewModel(Subscriber subscriber)
     {
-        public UnsubscribeViewModel(Subscriber subscriber)
-        {
-            Subscriber = subscriber;
-        }
-
-        public Subscriber Subscriber { get; }
+        Subscriber = subscriber;
     }
+
+    public Subscriber Subscriber { get; }
 }

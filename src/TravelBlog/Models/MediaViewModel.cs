@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace TravelBlog.Models
+namespace TravelBlog.Models;
+
+public class MediaViewModel
 {
-    public class MediaViewModel
+    public MediaViewModel(List<(string month, string name)> files)
     {
-        public MediaViewModel(List<(string month, string name)> files)
-        {
-            Files = files;
-        }
-
-        public List<(string month, string name)> Files { get; }
+        Files = files;
     }
+
+    public List<(string month, string name)> Files { get; }
 }

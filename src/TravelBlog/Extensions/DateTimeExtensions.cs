@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace TravelBlog.Extensions
+namespace TravelBlog.Extensions;
+
+public static class DateTimeExtensions
 {
-    public static class DateTimeExtensions
+    public static long ToUnixTimeMilliseconds(this DateTime dateTime)
     {
-        public static long ToUnixTimeMilliseconds(this DateTime dateTime)
-        {
-            return new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)).ToUnixTimeMilliseconds();
-        }
+        return new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)).ToUnixTimeMilliseconds();
     }
 }

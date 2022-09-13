@@ -6,47 +6,46 @@ using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Models;
 
-namespace TravelBlog.Controllers
+namespace TravelBlog.Controllers;
+
+[Route("~/unsubscribe")]
+public class UnsubscribeController : Controller
 {
-    [Route("~/unsubscribe")]
-    public class UnsubscribeController : Controller
+    private readonly DatabaseContext database;
+
+    public UnsubscribeController(DatabaseContext database)
     {
-        private readonly DatabaseContext database;
+        this.database = database;
+    }
 
-        public UnsubscribeController(DatabaseContext database)
+    [HttpGet]
+    public async Task<IActionResult> Get([FromQuery] string token)
+    {
+        Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+        if (subscriber is null)
+            return View("InvalidToken");
+
+        return View("Pending", new UnsubscribeViewModel(subscriber));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromQuery] string token)
+    {
+        Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+        if (subscriber is null)
+            return View("InvalidToken");
+
+        if (subscriber.ConfirmationTime == default)
         {
-            this.database = database;
+            database.Subscribers.Remove(subscriber);
         }
-
-        [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] string token)
+        else
         {
-            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber is null)
-                return View("InvalidToken");
-
-            return View("Pending", new UnsubscribeViewModel(subscriber));
+            subscriber.MailAddress = null;
+            subscriber.DeletionTime = DateTime.Now;
+            subscriber.Token = null;
         }
-
-        [HttpPost]
-        public async Task<IActionResult> Post([FromQuery] string token)
-        {
-            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber is null)
-                return View("InvalidToken");
-
-            if (subscriber.ConfirmationTime == default)
-            {
-                database.Subscribers.Remove(subscriber);
-            }
-            else
-            {
-                subscriber.MailAddress = null;
-                subscriber.DeletionTime = DateTime.Now;
-                subscriber.Token = null;
-            }
-            await database.SaveChangesAsync();
-            return View("Success", new UnsubscribeViewModel(subscriber));
-        }
+        await database.SaveChangesAsync();
+        return View("Success", new UnsubscribeViewModel(subscriber));
     }
 }

@@ -6,44 +6,43 @@ using System.Threading.Tasks;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 
-namespace TravelBlog.Services
+namespace TravelBlog.Services;
+
+public class AuthenticationService
 {
-    public class AuthenticationService
+    private readonly DatabaseContext database;
+
+    public AuthenticationService(DatabaseContext database)
     {
-        private readonly DatabaseContext database;
+        this.database = database;
+    }
 
-        public AuthenticationService(DatabaseContext database)
+    public Task SignInAsync(HttpContext context, string user, string role)
+    {
+        var claims = new[] { new Claim("user", user), new Claim("role", role) };
+        var properties = new AuthenticationProperties { IsPersistent = true };
+        return context.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")), properties);
+    }
+
+    public Task SignOutAsync(HttpContext context)
+    {
+        return context.SignOutAsync(Constants.AuthCookieScheme);
+    }
+
+    public async Task<bool> SignInAsync(HttpContext context, string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
+        if (subscriber is null)
+            return false;
+
+        if (!context.User.IsInRole(Constants.AdminRole))
         {
-            this.database = database;
+            await SignInAsync(context, token, Constants.SubscriberRole);
         }
 
-        public Task SignInAsync(HttpContext context, string user, string role)
-        {
-            var claims = new[] { new Claim("user", user), new Claim("role", role) };
-            var properties = new AuthenticationProperties { IsPersistent = true };
-            return context.SignInAsync(Constants.AuthCookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies", "user", "role")), properties);
-        }
-
-        public Task SignOutAsync(HttpContext context)
-        {
-            return context.SignOutAsync(Constants.AuthCookieScheme);
-        }
-
-        public async Task<bool> SignInAsync(HttpContext context, string token)
-        {
-            if (string.IsNullOrWhiteSpace(token))
-                return false;
-
-            Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Token == token);
-            if (subscriber is null)
-                return false;
-
-            if (!context.User.IsInRole(Constants.AdminRole))
-            {
-                await SignInAsync(context, token, Constants.SubscriberRole);
-            }
-
-            return true;
-        }
+        return true;
     }
 }

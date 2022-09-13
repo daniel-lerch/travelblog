@@ -15,88 +15,89 @@ using TravelBlog.Hosting;
 using TravelBlog.Services;
 using TravelBlog.Services.LightJobManager;
 
-namespace TravelBlog
+namespace TravelBlog;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.ConfigureTravelBlog(builder.Configuration);
+
+        builder.Services.Configure<CookiePolicyOptions>(options =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+            options.CheckConsentNeeded = context => true;
+            options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            options.Secure = CookieSecurePolicy.SameAsRequest;
+        });
 
-            builder.Services.ConfigureTravelBlog(builder.Configuration);
+        builder.Services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var cultures = new[] { new CultureInfo("de-DE") };
 
-            builder.Services.Configure<CookiePolicyOptions>(options =>
+            options.DefaultRequestCulture = new RequestCulture("de-DE");
+            options.SupportedCultures = cultures;
+            options.SupportedUICultures = cultures;
+            options.RequestCultureProviders = new[] { new AcceptLanguageHeaderRequestCultureProvider() };
+        });
+
+        builder.Services.AddSingleton<ThumbnailService>();
+        builder.Services.AddSingleton<MarkdownService>();
+        builder.Services.AddDbContext<DatabaseContext>();
+        builder.Services.AddScoped<AuthenticationService>();
+        builder.Services.AddScoped<MailingService>();
+
+        builder.Services.AddSingleton<JobSchedulerService<MailJob, MailJobContext>>();
+        builder.Services.AddHostedService(provider => provider.GetRequiredService<JobSchedulerService<MailJob, MailJobContext>>());
+
+        if (!builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "secrets")));
+        }
+
+        builder.Services.AddRouting();
+        builder.Services.AddAuthentication(Constants.AuthCookieScheme)
+            .AddCookie(Constants.AuthCookieScheme, options =>
             {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
-                options.Secure = CookieSecurePolicy.SameAsRequest;
+                options.LoginPath = "/admin/login";
+                options.AccessDeniedPath = "/admin/login";
+                options.ReturnUrlParameter = "redirect";
+                options.ExpireTimeSpan = TimeSpan.FromDays(30);
             });
-
-            builder.Services.Configure<RequestLocalizationOptions>(options =>
-            {
-                var cultures = new[] { new CultureInfo("de-DE") };
-
-                options.DefaultRequestCulture = new RequestCulture("de-DE");
-                options.SupportedCultures = cultures;
-                options.SupportedUICultures = cultures;
-                options.RequestCultureProviders = new[] { new AcceptLanguageHeaderRequestCultureProvider() };
-            });
-
-            builder.Services.AddSingleton<ThumbnailService>();
-            builder.Services.AddSingleton<MarkdownService>();
-            builder.Services.AddDbContext<DatabaseContext>();
-            builder.Services.AddScoped<AuthenticationService>();
-            builder.Services.AddScoped<MailingService>();
-
-            builder.Services.AddSingleton<JobSchedulerService<MailJob, MailJobContext>>();
-            builder.Services.AddHostedService(provider => provider.GetRequiredService<JobSchedulerService<MailJob, MailJobContext>>());
-
-            if (!builder.Environment.IsDevelopment())
-            {
-                builder.Services.AddDataProtection()
-                    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "secrets")));
-            }
-
-            builder.Services.AddRouting();
-            builder.Services.AddAuthentication(Constants.AuthCookieScheme)
-                .AddCookie(Constants.AuthCookieScheme, options =>
-                {
-                    options.LoginPath = "/admin/login";
-                    options.AccessDeniedPath = "/admin/login";
-                    options.ReturnUrlParameter = "redirect";
-                    options.ExpireTimeSpan = TimeSpan.FromDays(30);
-                });
 
 #if DEBUG
-            builder.Services.AddMvc().AddRazorRuntimeCompilation();
+        builder.Services.AddMvc().AddRazorRuntimeCompilation();
 #else
             builder.Services.AddMvc();
 #endif
 
-            var app = builder.Build();
+        var app = builder.Build();
 
-            if (builder.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/error");
-            }
+        app.MigrateDatabase();
 
-            app.UseProxy();
-
-            app.UseRequestLocalization();
-            app.UseStatusCodePagesWithReExecute("/status/{0}");
-            app.UseStaticFiles();
-            app.UseRouting();
-            app.UseCookiePolicy();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints => endpoints.MapControllers());
-            app.UseSpa(spa => spa.UseVueSpaFileProvider());
-            app.Run();
+        if (builder.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
+        else
+        {
+            app.UseExceptionHandler("/error");
+        }
+
+        app.UseProxy();
+
+        app.UseRequestLocalization();
+        app.UseStatusCodePagesWithReExecute("/status/{0}");
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseCookiePolicy();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
+        app.UseSpa(spa => spa.UseVueSpaFileProvider());
+        app.Run();
     }
 }
