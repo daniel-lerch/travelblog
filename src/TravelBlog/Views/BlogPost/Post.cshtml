@@ -18,11 +18,11 @@
     </h1>
     if (Model.Post.PublishTime == default)
     {
-        <p>Entwurf - @Model.WordCount Wörter - zuletzt bearbeitet am <span class="js-convert-datetime" data-timestamp="@Model.Post.ModifyTime.ToUnixTimeMilliseconds()"></span></p>
+        <p class="text-secondary">Entwurf - @Model.WordCount Wörter - zuletzt bearbeitet am <span class="js-convert-datetime" data-timestamp="@Model.Post.ModifyTime.ToUnixTimeMilliseconds()"></span></p>
     }
     else
     {
-        <p>Gepostet am <span class="js-convert-datetime" data-timestamp="@Model.Post.PublishTime.ToUnixTimeMilliseconds()"></span> - @Model.WordCount Wörter - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
+        <p class="text-secondary">Gepostet am <span class="js-convert-datetime" data-timestamp="@Model.Post.PublishTime.ToUnixTimeMilliseconds()"></span> - @Model.WordCount Wörter - <a href="~/post/@Model.Post.Id/reads">@Model.ReadCount Aufrufe</a> bisher</p>
     }
 }
 else
