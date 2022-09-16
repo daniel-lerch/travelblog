@@ -8,10 +8,8 @@ using Microsoft.Extensions.Options;
 using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
-using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
-using TravelBlog.Services.LightJobManager;
 
 namespace TravelBlog.Controllers;
 
@@ -20,16 +18,16 @@ public class AdminController : Controller
 {
     private readonly IOptions<SiteOptions> options;
     private readonly DatabaseContext database;
-    private readonly JobSchedulerService<MailJob, MailJobContext> scheduler;
     private readonly AuthenticationService authentication;
+    private readonly SubscriberService subscriberService;
 
     public AdminController(IOptions<SiteOptions> options, DatabaseContext database,
-        JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication)
+        AuthenticationService authentication, SubscriberService subscriberService)
     {
         this.options = options;
         this.database = database;
-        this.scheduler = scheduler;
         this.authentication = authentication;
+        this.subscriberService = subscriberService;
     }
 
     [HttpGet]
@@ -72,26 +70,10 @@ public class AdminController : Controller
     [Authorize(Roles = Constants.AdminRole)]
     public async Task<IActionResult> Confirm([FromQuery] int id)
     {
-        Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
-        if (subscriber is null || subscriber.ConfirmationTime != default || subscriber.DeletionTime != default)
-            return Redirect("~/admin?status=error");
-        subscriber.ConfirmationTime = DateTime.Now;
-        await database.SaveChangesAsync();
-
-        string mail = $"Hey {subscriber.GivenName},\r\n" +
-            $"du hast dich erfolgreich bei {options.Value.BlogName} registriert.\r\n";
-
-        if (await database.BlogPosts.AnyAsync(p => p.PublishTime != default))
-            // Give late subscribers the chance to view posts before they get the next notification mail.
-            mail += $"Es wurden bereits Posts veröffentlicht: {Url.ContentLink($"~/posts/auth?token={subscriber.Token}")}\r\n";
+        if (await subscriberService.Confirm(id, Url))
+            return Redirect("~/admin?status=success");
         else
-            mail += $"Ab sofort wirst du per E-Mail über neue Einträge informiert.\r\n";
-
-        mail += $"\r\nDu kannst dich von diesem Blog jederzeit hier abmelden: {Url.ContentLink("~/unsubscribe?token=" + subscriber.Token)}";
-
-        await scheduler.Enqueue(new MailJob(default, subscriber.Id, subject: "Erfolgreich registriert", mail));
-
-        return Redirect("~/admin?status=success");
+            return Redirect("~/admin?status=error");
     }
 
     [Authorize(Roles = Constants.AdminRole)]

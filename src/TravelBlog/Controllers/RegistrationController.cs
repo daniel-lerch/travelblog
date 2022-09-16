@@ -1,12 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TravelBlog.Database;
-using TravelBlog.Database.Entities;
 using TravelBlog.Models;
-using Wiry.Base32;
+using TravelBlog.Services;
 
 namespace TravelBlog.Controllers;
 
@@ -14,10 +11,12 @@ namespace TravelBlog.Controllers;
 public class RegistrationController : Controller
 {
     private readonly DatabaseContext context;
+    private readonly SubscriberService subscriberService;
 
-    public RegistrationController(DatabaseContext context)
+    public RegistrationController(DatabaseContext context, SubscriberService subscriberService)
     {
         this.context = context;
+        this.subscriberService = subscriberService;
     }
 
     [HttpGet]
@@ -32,25 +31,9 @@ public class RegistrationController : Controller
         if (!ModelState.IsValid)
             return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Deine Angaben sind unvollständig oder ungültig!"));
 
-        context.Subscribers.Add(new Subscriber(mailAddress, givenName, familyName, RandomToken()));
-        try
-        {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateException ex)
-        {
-            if (ex.IsUniqueConstraintViolation())
-                return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Diese E-Mail-Adresse ist bereits registriert."));
-            else throw;
-        }
-        return View("Success", new RegistrationViewModel(mailAddress, givenName, familyName));
-    }
-
-    private string RandomToken()
-    {
-        using var random = RandomNumberGenerator.Create();
-        byte[] buffer = new byte[20];
-        random.GetBytes(buffer);
-        return Base32Encoding.Standard.GetString(buffer);
+        if (await subscriberService.Register(mailAddress, givenName, familyName))
+            return View("Success", new RegistrationViewModel(mailAddress, givenName, familyName));
+        else
+            return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Diese E-Mail-Adresse ist bereits registriert."));
     }
 }

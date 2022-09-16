@@ -51,6 +51,8 @@ public class Program
         builder.Services.AddSingleton<JobSchedulerService<MailJob, MailJobContext>>();
         builder.Services.AddHostedService(provider => provider.GetRequiredService<JobSchedulerService<MailJob, MailJobContext>>());
 
+        builder.Services.AddTransient<SubscriberService>();
+
         if (!builder.Environment.IsDevelopment())
         {
             builder.Services.AddDataProtection()
@@ -70,7 +72,7 @@ public class Program
 #if DEBUG
         builder.Services.AddMvc().AddRazorRuntimeCompilation();
 #else
-            builder.Services.AddMvc();
+        builder.Services.AddMvc();
 #endif
 
         var app = builder.Build();
