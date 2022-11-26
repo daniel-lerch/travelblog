@@ -9,6 +9,7 @@ public class DatabaseContext : DbContext
 {
     private readonly IOptions<DatabaseOptions> options;
 
+    public DbSet<Page> Pages => Set<Page>();
     public DbSet<Subscriber> Subscribers => Set<Subscriber>();
     public DbSet<BlogPost> BlogPosts => Set<BlogPost>();
     public DbSet<PostRead> PostReads => Set<PostRead>();
@@ -29,6 +30,9 @@ public class DatabaseContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        var page = modelBuilder.Entity<Page>();
+        page.HasKey(p => p.Name);
 
         var subscriber = modelBuilder.Entity<Subscriber>();
         subscriber.HasKey(s => s.Id);

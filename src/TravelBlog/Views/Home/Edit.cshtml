@@ -1,0 +1,20 @@
+﻿@model HomeEditViewModel
+@{
+	// .NET 6 does not allow to enforce callers to pass a view model:
+	// https://github.com/dotnet/aspnetcore/issues/37510
+	if (Model is null) throw new ArgumentNullException(nameof(Model));
+
+	ViewData["Title"] = "Homepage bearbeiten";
+}
+
+<h1>Homepage bearbeiten</h1>
+
+<form action="~/home/edit" method="post">
+	<div class="form-group">
+		<textarea class="form-control" id="content" name="content" rows="10" aria-describedby="contentHelp">@Model.Content</textarea>
+		<small class="form-text text-muted" id="contentHelp">
+			Du kannst hier <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown</a> zur Formatierung verwenden.
+		</small>
+	</div>
+	<button type="submit" class="btn btn-primary">Aktualisieren</button>
+</form>
