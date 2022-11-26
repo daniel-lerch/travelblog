@@ -12,17 +12,17 @@
   
   
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="2.15.0" />
-    <PackageReference Include="Markdig" Version="0.26.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.1" Condition="'$(Configuration)' == 'Debug'" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
+    <PackageReference Include="MailKit" Version="3.4.3" />
+    <PackageReference Include="Markdig" Version="0.30.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.11" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.11" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.2" />
-    <PackageReference Include="NetVips" Version="2.0.1" />
-    <PackageReference Include="NetVips.Native" Version="8.11.4" />
+    <PackageReference Include="NetVips" Version="2.2.0" />
+    <PackageReference Include="NetVips.Native" Version="8.13.2" />
     <PackageReference Include="UAParser" Version="3.1.47" />
     <PackageReference Include="Wiry.Base32" Version="1.1.1" />
   </ItemGroup>

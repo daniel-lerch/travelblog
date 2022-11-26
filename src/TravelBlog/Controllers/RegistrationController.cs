@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TravelBlog.Database;
 using TravelBlog.Models;
 using TravelBlog.Services;
 
@@ -10,12 +9,10 @@ namespace TravelBlog.Controllers;
 [Route("~/register")]
 public class RegistrationController : Controller
 {
-    private readonly DatabaseContext context;
     private readonly SubscriberService subscriberService;
 
-    public RegistrationController(DatabaseContext context, SubscriberService subscriberService)
+    public RegistrationController(SubscriberService subscriberService)
     {
-        this.context = context;
         this.subscriberService = subscriberService;
     }
 
