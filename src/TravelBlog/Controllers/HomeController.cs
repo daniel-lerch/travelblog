@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Models;
+using TravelBlog.Services;
 
 namespace TravelBlog.Controllers;
 
@@ -14,16 +15,22 @@ namespace TravelBlog.Controllers;
 public class HomeController : Controller
 {
 	private readonly DatabaseContext database;
+	private readonly MarkdownService markdown;
 
-	public HomeController(DatabaseContext database)
+	public HomeController(DatabaseContext database, MarkdownService markdown)
 	{
 		this.database = database;
+		this.markdown = markdown;
 	}
 
 	public async Task<IActionResult> Index()
 	{
+		string? homePageHtml = null;
 		Page? homePage = await database.Pages.SingleOrDefaultAsync(p => p.Name == "Homepage");
-		return View(new HomeViewModel(homePage?.Content));
+		if (homePage != null) 
+			homePageHtml = markdown.ToHtml(homePage.Content);
+		
+		return View(new HomeViewModel(homePageHtml));
 	}
 
 	[HttpGet("~/home/edit")]
