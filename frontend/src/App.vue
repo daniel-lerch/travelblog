@@ -27,7 +27,7 @@
               <router-link class="nav-link text-dark" to="/media">Medien</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link text-dark" to="~/admin">Admin</router-link>
+              <router-link class="nav-link text-dark" to="/admin">Admin</router-link>
             </li>
             <!--}-->
           </ul>
