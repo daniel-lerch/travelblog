@@ -1,26 +1,6 @@
 <template>
     <h1>Admin</h1>
 
-    @switch (Model.Status)
-    {
-    case "success":
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        Erfolgreich bestätigt/gelöscht
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    break;
-    case "error":
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        Bestätigen/Löschen fehlgeschlagen
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    break;
-    }
-
     <h3 v-if="subscribers.length > 0">Registrierungen</h3>
     <p v-if="subscribers.length > 0" class="text-muted">Insgesamt {{ subscribers.length }}</p>
     <table v-if="subscribers.length > 0" class="table table-responsive">
@@ -34,22 +14,17 @@
         </thead>
         <tbody>
             <!--<tr @if (subscriber.DeletionTime != default) { Write(new HtmlString("style=\"text-decoration: line-through;\"")); }>-->
-            <tr v-for="subscriber in subscribers" :key="subscriber.id">
+            <tr v-for="subscriber in subscribers" :key="subscriber.id" :class="{ deleted: subscriber.deletionTime !== null }">
                 <td>{{ subscriber.givenName }}</td>
                 <td>{{ subscriber.familyName }}</td>
                 <td>{{ subscriber.mailAddress }}</td>
                 <td>
-                    @if (subscriber.DeletionTime == default)
-                    {
-                    <form action="" method="post" class="form-inline">
-                        <button type="submit" formaction="~/admin/confirm?id=@subscriber.Id"
-                            class="btn btn-outline-success mr-1">✔️</button>
-                        <button type="submit" formaction="~/admin/delete?id=@subscriber.Id"
-                            class="btn btn-outline-danger">❌</button>
-                        <button type="submit" formaction="~/admin/delete?id=@subscriber.Id"
-                            class="btn btn-outline-danger mr-1">❌</button>
-                    </form>
-                    }
+                    <div v-if="subscriber.deletionTime === null" class="form-inline">
+                        <button v-if="subscriber.confirmationTime === null" type="button" @click="accept(subscriber)"
+                            class="btn btn-outline-success mr-1"><font-awesome-icon icon="fa-check" /></button>
+                        <button type="button" @click="reject(subscriber)"
+                            class="btn btn-outline-danger"><font-awesome-icon icon="fa-xmark" /></button>
+                    </div>
                 </td>
             </tr>
         </tbody>
@@ -58,8 +33,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed } from 'vue'
-import { Subscriber, getSubscribers } from '@/api/admin'
+import { defineComponent, onMounted, ref } from 'vue'
+import { Subscriber, getSubscribers, editSubscriber } from '@/api/admin'
 
 export default defineComponent({
   setup () {
@@ -69,7 +44,17 @@ export default defineComponent({
       subscribers.value = await getSubscribers()
     })
 
-    return { subscribers }
+    async function accept (subscriber: Subscriber) {
+      subscriber.confirmationTime = new Date()
+      await editSubscriber(subscriber)
+    }
+
+    async function reject (subscriber: Subscriber) {
+      subscriber.deletionTime = new Date()
+      await editSubscriber(subscriber)
+    }
+
+    return { subscribers, accept, reject }
   }
 })
 </script>

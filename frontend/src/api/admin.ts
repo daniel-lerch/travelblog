@@ -1,4 +1,4 @@
-import { get } from './client'
+import client, { get } from './client'
 
 export interface Subscriber {
     id: number;
@@ -11,4 +11,9 @@ export interface Subscriber {
 
 export function getSubscribers (): Promise<Subscriber[]> {
   return get('/api/admin/subscribers')
+}
+
+export async function editSubscriber (subscriber: Subscriber): Promise<boolean> {
+  const response = await client.put('/api/admin/subscriber/' + subscriber.id, subscriber)
+  return response.status === 204
 }

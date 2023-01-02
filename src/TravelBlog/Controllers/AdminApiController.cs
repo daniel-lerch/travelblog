@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,8 @@ public class AdminApiController : ControllerBase
     //[Authorize(Roles = Constants.AdminRole)]
     public async Task<IActionResult> EditSubscriber(int id, [FromBody] JsonSubscriber subscriber)
     {
+        if (!ModelState.IsValid) return StatusCode(400);
+
         Subscriber? current = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
         if (current == null) return StatusCode(404);
 
@@ -48,22 +51,34 @@ public class AdminApiController : ControllerBase
         return StatusCode(204);
     }
 
-    public record JsonSubscriber(
-        int Id,
-        string? MailAddress,
-        string GivenName,
-        string FamilyName,
-        DateTime? ConfirmationTime,
-        DateTime? DeletionTime)
+    public class JsonSubscriber
     {
+        [JsonConstructor]
+        public JsonSubscriber(int id, string? mailAddress, string givenName, string familyName, DateTime? confirmationTime, DateTime? deletionTime)
+        {
+            Id = id;
+            MailAddress = mailAddress;
+            GivenName = givenName;
+            FamilyName = familyName;
+            ConfirmationTime = confirmationTime;
+            DeletionTime = deletionTime;
+        }
+
         public JsonSubscriber(Subscriber subscriber)
-            : this(
-                subscriber.Id,
-                subscriber.MailAddress,
-                subscriber.GivenName,
-                subscriber.FamilyName,
-                subscriber.ConfirmationTime.NullIfDefault(),
-                subscriber.DeletionTime.NullIfDefault())
-        { }
+        {
+            Id = subscriber.Id;
+            MailAddress = subscriber.MailAddress;
+            GivenName = subscriber.GivenName;
+            FamilyName = subscriber.FamilyName;
+            ConfirmationTime = subscriber.ConfirmationTime.NullIfDefault();
+            DeletionTime = subscriber.DeletionTime.NullIfDefault();
+        }
+
+        public int Id { get; }
+        public string? MailAddress { get; }
+        public string GivenName { get; }
+        public string FamilyName { get; }
+        public DateTime? ConfirmationTime { get; }
+        public DateTime? DeletionTime { get; }
     }
 }
