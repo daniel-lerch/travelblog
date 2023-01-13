@@ -24,6 +24,7 @@
 <script lang="ts">
 import router from '@/router'
 import { defineComponent, ref } from 'vue'
+import { subscribe } from '@/api/subscriber'
 
 export default defineComponent({
   setup () {
@@ -31,9 +32,11 @@ export default defineComponent({
     const familyName = ref('')
     const mailAddress = ref('')
 
-    function register () {
-      // TODO: Perform web request and redirect
-      router.push({ name: 'Registered' })
+    async function register () {
+      // Perform web request and redirect
+      if (await subscribe({ givenName: givenName.value, familyName: familyName.value, mailAddress: mailAddress.value, comment: '' })) {
+        router.push({ name: 'Registered' })
+      }
     }
 
     return { givenName, familyName, mailAddress, register }
