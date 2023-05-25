@@ -31,7 +31,7 @@
     },
     {
       "provider": "unpkg",
-      "library": "jquery@3.6.1",
+      "library": "jquery@3.7.0",
       "destination": "wwwroot/lib/jquery/",
       "files": [
         "dist/jquery.js",
