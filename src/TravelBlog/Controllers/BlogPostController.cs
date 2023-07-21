@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -206,6 +208,8 @@ public class BlogPostController : Controller
         List<Subscriber> subscribers = await database.Subscribers
             .Where(s => s.MailAddress != null && s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
 
+        string htmlTemplate = LoadHtmlTemplate();
+
         await deliveryService.Enqueue(subscribers.Select(subscriber =>
         {
             string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={subscriber.Token}");
@@ -215,14 +219,33 @@ public class BlogPostController : Controller
                 $"{postUrl}\r\n\r\n" +
                 $"Du kannst dich von diesem Blog jederzeit hier abmelden: {unsubscribeUrl}";
 
+            string htmlBody = htmlTemplate
+                .Replace("${POST_TITLE}", post.Title)
+                .Replace("${POST_HTML_PREVIEW}", post.Content)
+                .Replace("${POST_URL}", postUrl)
+                .Replace("${BLOG_NAME}", siteOptions.Value.BlogName)
+                .Replace("${UNSUBCRIBE_URL}", unsubscribeUrl);
+
             MimeMessage mimeMessage = new();
             mimeMessage.From.Add(new MailboxAddress(mailingOptions.Value.SenderName, mailingOptions.Value.SenderAddress));
             mimeMessage.To.Add(new MailboxAddress(subscriber.GetName(), subscriber.MailAddress));
             mimeMessage.ReplyTo.Add(new MailboxAddress(mailingOptions.Value.AuthorName, mailingOptions.Value.AuthorAddress));
             mimeMessage.Subject = "Neuer Post";
-            mimeMessage.Body = new TextPart("plain") { Text = message };
+            mimeMessage.Body = new MultipartAlternative
+            {
+                new TextPart("plain") { Text = message },
+                new TextPart("html") { Text = htmlBody }
+            };
 
             return (subscriber.MailAddress!, mimeMessage);
         }), post.Id);
+    }
+
+    private static string LoadHtmlTemplate()
+    {
+        using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TravelBlog.Resources.post.html")
+            ?? throw new ApplicationException("Could not load resource post.html");
+        using StreamReader reader = new(stream);
+        return reader.ReadToEnd();
     }
 }
