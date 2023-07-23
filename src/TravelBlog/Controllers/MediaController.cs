@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,20 +30,28 @@ public class MediaController : Controller
     [Authorize(Roles = AdminRole)]
     public IActionResult Index()
     {
-        var result = new List<(string month, string name)>();
+        var result = new List<MediaViewModel.File>();
         var extensions = new[] { ".jpg", ".jpeg", ".png", ".mp4" };
         var folder = new DirectoryInfo(Path.Combine(environment.ContentRootPath, "media"));
 
-        foreach (DirectoryInfo month in folder.EnumerateDirectories().OrderByDescending(x => x.Name))
+        foreach (DirectoryInfo monthFolder in folder.EnumerateDirectories().OrderByDescending(x => x.Name))
         {
-            foreach (FileInfo file in month.EnumerateFiles().OrderByDescending(x => x.Name))
+            if (!DateOnly.TryParseExact(monthFolder.Name, "yyMM", out DateOnly month)) continue;
+
+			foreach (FileInfo file in monthFolder.EnumerateFiles().OrderByDescending(x => x.Name))
             {
-                if (extensions.Contains(file.Extension.ToLowerInvariant()))
+                string downloadUrl = Url.Content($"~/media/{monthFolder.Name}/{file.Name}");
+
+				string thumbnailUrl = file.Extension.ToLowerInvariant() switch
                 {
-                    result.Add((month.Name, file.Name));
-                }
-            }
-        }
+                    ".jpg" or ".jpeg" or ".png" => downloadUrl,
+                    ".mp4" => Url.Content("~/video.png"),
+                    _ => Url.Content("~/failure.png")
+                };
+
+				result.Add(new(file.Name, month, downloadUrl, thumbnailUrl));
+			}
+		}
 
         return View("Index", new MediaViewModel(result));
     }

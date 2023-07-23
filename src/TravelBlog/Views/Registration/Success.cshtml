@@ -1,18 +1,24 @@
-﻿@model RegistrationViewModel
+﻿@using Microsoft.Extensions.Options
+@using TravelBlog.Configuration 
+
+@inject IOptions<SiteOptions> SiteOptions
+    
+@model RegistrationViewModel
 @{
     // .NET 6 does not allow to enforce callers to pass a view model:
     // https://github.com/dotnet/aspnetcore/issues/37510
     if (Model is null) throw new ArgumentNullException(nameof(Model));
 
-    ViewData["Title"] = "Registrierung abgeschlossen";
+    ViewData["Title"] = "Anfrage gesendet";
 }
 
-<h1>Registrierung abgeschlossen</h1>
+<h1>Anfrage gesendet</h1>
 
 <p>
     Hey @Model.GivenName,<br />
-    Du hast dich erfolgreich für Newsletter registriert.
-    Sobald deine Registrierung bestätigt wird, wirst du per E-Mail darüber informiert.
-    Dann bekommst du für jeden neuen Blogeintrag eine Erinnerung an @Model.MailAddress gesendet.
+    Du hast dich erfolgreich für @SiteOptions.Value.BlogName registriert.
+    Deine Registrierung muss zuerst geprüft und bestätigt werden, da auf diesem Blog auch private Inhalte gepostet werden könnten.
+    Sobald deine Anfrage angenommen wurde, wirst du per E-Mail darüber informiert.
+    Dann bekommst du außerdem für jeden neuen Blogeintrag eine Erinnerung an @Model.MailAddress gesendet.
 </p>
 

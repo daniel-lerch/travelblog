@@ -2,21 +2,41 @@
 @using TravelBlog.Configuration
 
 @inject IOptions<SiteOptions> SiteOptions
+
+@model HomeViewModel
 @{
-    ViewData["Title"] = "Home Page";
+	// .NET 6 does not allow to enforce callers to pass a view model:
+    // https://github.com/dotnet/aspnetcore/issues/37510
+    if (Model is null) throw new ArgumentNullException(nameof(Model));
+
+	ViewData["Title"] = "Homepage";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Willkommen bei @SiteOptions.Value.BlogName</h1>
-    @if (Context.User.IsInRole(Constants.SubscriberRole) || Context.User.IsInRole(Constants.AdminRole))
-    {
-        <p><a href="~/posts">Hier</a> kannst du dir alle bisherigen Posts anschauen.</p>
-    }
-    else
-    {
-        <p>
-            Dieser Blog ist zugangsbeschränkt. Du musst dich zuerst <a href="~/register">registrieren</a>, bevor du Inhalte sehen kannst.
-            Dann bekommst du für jeden neuen Post eine E-Mail mit einem personalisierten Link.
-        </p>
-    }
+	@if (Context.User.IsInRole(Constants.AdminRole))
+	{
+		<h1 class="display-4">
+			Willkommen bei @SiteOptions.Value.BlogName <a class="btn btn-light" href="~/home/edit">✏️</a>
+		</h1>
+	}
+	else
+	{
+		<h1 class="display-4">Willkommen bei @SiteOptions.Value.BlogName</h1>
+	}
+
+	@if (Context.User.IsInRole(Constants.SubscriberRole) || Context.User.IsInRole(Constants.AdminRole))
+	{
+		<p><a href="~/posts">Hier</a> kannst du dir alle bisherigen Posts anschauen.</p>
+	}
+	else
+	{
+		<p>
+			Dieser Blog ist zugangsbeschränkt. Du musst dich zuerst <a href="~/register">registrieren</a>, bevor du Inhalte sehen kannst.
+			Dann bekommst du für jeden neuen Post eine E-Mail mit einem personalisierten Link.
+		</p>
+	}
+
+	@{
+		Write(Model.HtmlContent);
+	}
 </div>

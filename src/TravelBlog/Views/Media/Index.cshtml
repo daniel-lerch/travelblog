@@ -22,28 +22,21 @@
 </form>
 
 @{
-	string? current = null;
+	DateOnly? current = null;
 
 	foreach (var file in Model.Files)
 	{
-		if (file.month != current)
+		if (file.Month != current)
 		{
 			<hr />
-			<h3>@DateTime.ParseExact(file.month, "yyMM", null).ToString("MMM yyyy")</h3>
-			current = file.month;
+			<h3>@file.Month.ToString("MMM yyyy")</h3>
+			current = file.Month;
 		}
-		<figure class="figure border rounded p-1" data-src="@Url.Content($"~/media/{file.month}/{file.name}")">
+		<figure class="figure border rounded p-1" data-src="@file.DownloadUrl")">
 			<div class="center-image">
-				@if (file.name.EndsWith(".mp4"))
-				{
-					<img src="~/video.png" />
-				}
-				else
-				{
-					<img src="~/media/@file.month/@file.name?size=400" />
-				}
+				<img src="@file.ThumbnailUrl?size=400" />
 			</div>
-			<figcaption class="figure-caption mt-1 mx-1">@file.name</figcaption>
+			<figcaption class="figure-caption mt-1 mx-1">@file.Name</figcaption>
 			<button role="button" class="btn d-none clipboard">📋</button>
 			<button role="button" class="btn d-none delete">🗑️</button>
 		</figure>
