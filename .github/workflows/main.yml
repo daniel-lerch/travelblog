@@ -20,6 +20,22 @@ jobs:
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
 
+  webapp:
+    name: Frontend build
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup NodeJS
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - name: Restore NPM packages
+      run: npm install
+      working-directory: frontend
+    - name: Build
+      run: npm run build
+      working-directory: frontend
+
   docker:
     name: Docker build
     runs-on: ubuntu-22.04
