@@ -50,7 +50,7 @@
 
   <footer class="border-top footer text-muted">
     <div class="container">
-      &copy; 2019-2022 Daniel Lerch <small>mit Icons von <a href="https://icons8.com">Icons8</a></small>
+      &copy; 2019-2023 Daniel Lerch <small>mit Icons von <a href="https://icons8.com">Icons8</a></small>
     </div>
   </footer>
 </template>
