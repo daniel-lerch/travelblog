@@ -23,5 +23,7 @@ export async function get<T> (query: string): Promise<T> {
 }
 
 export default axios.create({
-  baseURL: process.env.VUE_APP_API_URL ?? window.resourceBasePath.slice(0, -1)
+  baseURL: process.env.VUE_APP_API_URL ?? window.resourceBasePath.slice(0, -1),
+  // Disable Axios throwing errors for non-success status codes because handling is easier this way
+  validateStatus: status => status >= 200 && status < 600
 })

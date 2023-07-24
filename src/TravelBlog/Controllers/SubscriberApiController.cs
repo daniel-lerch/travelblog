@@ -45,7 +45,7 @@ public class SubscriberApiController : ControllerBase
         return StatusCode(StatusCodes.Status204NoContent);
     }
 
-    [HttpPost("~/api/profile")]
+    [HttpGet("~/api/profile")]
     [ProducesResponseType(typeof(ProfileResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Profile([FromQuery] string token)
