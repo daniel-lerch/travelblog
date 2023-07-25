@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -54,7 +55,11 @@ public class SubscriberApiController : ControllerBase
 		if (subscriber is null)
 			return StatusCode(StatusCodes.Status404NotFound);
 
-		return new JsonResult(new ProfileResponse(subscriber.GivenName, subscriber.FamilyName));
+        if (subscriber.MailAddress == null)
+            throw new InvalidDataException(
+                $"{nameof(subscriber.MailAddress)} must not be null when {nameof(subscriber.Token)} is not null.");
+
+		return new JsonResult(new ProfileResponse(subscriber.MailAddress, subscriber.GivenName, subscriber.FamilyName));
     }
 
     [HttpPost("~/api/unsubscribe")]
@@ -82,7 +87,7 @@ public class SubscriberApiController : ControllerBase
 
     public record SubscribeRequest(string MailAddress, string GivenName, string FamilyName, string Comment);
 
-    public record ProfileResponse(string GivenName, string FamilyName);
+    public record ProfileResponse(string MailAddress, string GivenName, string FamilyName);
 
     private static string RandomToken()
     {

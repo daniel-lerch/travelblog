@@ -15,6 +15,11 @@ const routes: Array<RouteRecordRaw> = [
     component: RegisterView
   },
   {
+    path: '/unsubscribe',
+    name: 'Unsubscribe',
+    component: () => import(/* webpackChunkName: "unsubscribe" */ './views/UnsubscribeView.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: AdminView
