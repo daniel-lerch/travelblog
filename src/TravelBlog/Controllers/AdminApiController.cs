@@ -4,22 +4,44 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
+using TravelBlog.Services;
 
 namespace TravelBlog.Controllers;
 
 [ApiController]
 public class AdminApiController : ControllerBase
 {
+    private readonly IOptions<SiteOptions> options;
     private readonly DatabaseContext database;
+    private readonly AuthenticationService authentication;
 
-    public AdminApiController(DatabaseContext database)
+    public AdminApiController(IOptions<SiteOptions> options, DatabaseContext database, AuthenticationService authentication)
     {
+        this.options = options;
         this.database = database;
+        this.authentication = authentication;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(LoginRequest request)
+    {
+        if (request.Password == options.Value.AdminPassword)
+        {
+            await authentication.SignInAsync(HttpContext, "admin", Constants.AdminRole);
+            return StatusCode(StatusCodes.Status204NoContent);
+        }
+        else
+        {
+            return StatusCode(StatusCodes.Status401Unauthorized);
+        }
     }
 
     [HttpGet("~/api/admin/subscribers")]
@@ -50,6 +72,8 @@ public class AdminApiController : ControllerBase
 
         return StatusCode(204);
     }
+
+    public record LoginRequest(string Password);
 
     public class JsonSubscriber
     {
