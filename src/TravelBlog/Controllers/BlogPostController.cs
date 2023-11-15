@@ -8,13 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using MimeKit;
 using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
-using TravelBlog.Services.LightJobManager;
 using UAParser;
 
 namespace TravelBlog.Controllers;
@@ -22,18 +22,20 @@ namespace TravelBlog.Controllers;
 [Route("~/post/{id?}/{action=Index}")]
 public class BlogPostController : Controller
 {
-    private readonly IOptions<SiteOptions> options;
+    private readonly IOptions<SiteOptions> siteOptions;
+    private readonly IOptions<MailingOptions> mailingOptions;
     private readonly DatabaseContext database;
-    private readonly JobSchedulerService<MailJob, MailJobContext> scheduler;
+    private readonly EmailDeliveryService deliveryService;
     private readonly AuthenticationService authentication;
     private readonly MarkdownService markdown;
 
-    public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database,
-        JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication, MarkdownService markdown)
+    public BlogPostController(IOptions<SiteOptions> siteOptions, IOptions<MailingOptions> mailingOptions, DatabaseContext database,
+        EmailDeliveryService deliveryService, AuthenticationService authentication, MarkdownService markdown)
     {
-        this.options = options;
+        this.siteOptions = siteOptions;
+        this.mailingOptions = mailingOptions;
         this.database = database;
-        this.scheduler = scheduler;
+        this.deliveryService = deliveryService;
         this.authentication = authentication;
         this.markdown = markdown;
     }
@@ -202,17 +204,25 @@ public class BlogPostController : Controller
     private async Task NotifySubscribers(BlogPost post)
     {
         List<Subscriber> subscribers = await database.Subscribers
-            .Where(s => s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
+            .Where(s => s.MailAddress != null && s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
 
-        await scheduler.Enqueue(subscribers.Select(s =>
+        await deliveryService.Enqueue(subscribers.Select(subscriber =>
         {
-            string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={s.Token}");
-            string unsubscribeUrl = Url.ContentLink("~/unsubscribe?token=" + s.Token);
-            string message = $"Hey {s.GivenName},\r\n" +
-                $"es wurde etwas neues auf {options.Value.BlogName} gepostet:\r\n" +
+            string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={subscriber.Token}");
+            string unsubscribeUrl = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
+            string message = $"Hey {subscriber.GivenName},\r\n" +
+                $"es wurde etwas neues auf {siteOptions.Value.BlogName} gepostet:\r\n" +
                 $"{postUrl}\r\n\r\n" +
                 $"Du kannst dich von diesem Blog jederzeit hier abmelden: {unsubscribeUrl}";
-            return new MailJob(id: default, s.Id, subject: "Neuer Post", message);
-        }));
+
+            MimeMessage mimeMessage = new();
+            mimeMessage.From.Add(new MailboxAddress(mailingOptions.Value.SenderName, mailingOptions.Value.SenderAddress));
+            mimeMessage.To.Add(new MailboxAddress(subscriber.GetName(), subscriber.MailAddress));
+            mimeMessage.ReplyTo.Add(new MailboxAddress(mailingOptions.Value.AuthorName, mailingOptions.Value.AuthorAddress));
+            mimeMessage.Subject = "Neuer Post";
+            mimeMessage.Body = new TextPart("plain") { Text = message };
+
+            return (subscriber.MailAddress!, mimeMessage);
+        }), post.Id);
     }
 }

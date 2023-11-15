@@ -9,10 +9,9 @@ using System;
 using System.Globalization;
 using System.IO;
 using TravelBlog.Database;
-using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Services;
-using TravelBlog.Services.LightJobManager;
+using TravelBlog.Utilities;
 
 namespace TravelBlog;
 
@@ -46,10 +45,10 @@ public class Program
         builder.Services.AddSingleton<MarkdownService>();
         builder.Services.AddDbContext<DatabaseContext>();
         builder.Services.AddScoped<AuthenticationService>();
-        builder.Services.AddScoped<MailingService>();
 
-        builder.Services.AddSingleton<JobSchedulerService<MailJob, MailJobContext>>();
-        builder.Services.AddHostedService(provider => provider.GetRequiredService<JobSchedulerService<MailJob, MailJobContext>>());
+        builder.Services.AddSingleton<JobQueue<EmailDeliveryJobController>>();
+        builder.Services.AddHostedService(serviceProvider => serviceProvider.GetRequiredService<JobQueue<EmailDeliveryJobController>>());
+        builder.Services.AddScoped<EmailDeliveryService>();
 
         builder.Services.AddTransient<SubscriberService>();
 
