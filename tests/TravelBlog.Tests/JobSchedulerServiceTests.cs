@@ -20,7 +20,7 @@ public class JobSchedulerServiceTests
         Assert.Equal(new[] { data }, await context.GetJobs());
         data.SetResult(true);
         await Task.Delay(50);
-        Assert.Equal(0, (await context.GetJobs()).Count);
+        Assert.Empty(await context.GetJobs());
         await jobScheduler.StopAsync(default);
     }
 
@@ -41,7 +41,7 @@ public class JobSchedulerServiceTests
         Assert.False(stop.IsCompleted);
         data.SetResult(true);
         await stop;
-        Assert.Equal(0, (await context.GetJobs()).Count);
+        Assert.Empty(await context.GetJobs());
     }
 
     [Fact]
