@@ -38,8 +38,8 @@ public class MailingService : IAsyncDisposable, IDisposable
         var sender = new MailboxAddress(options.SenderName, options.SenderAddress);
         var author = string.IsNullOrEmpty(options.AuthorAddress) ? sender : new MailboxAddress(options.AuthorName, options.AuthorAddress);
         var message = new MimeMessage();
-        message.From.Add(author);
-        message.Sender = sender;
+        message.From.Add(sender);
+        message.ReplyTo.Add(author);
         message.To.Add(new MailboxAddress(name, address));
         message.Subject = subject;
         message.Body = new TextPart("plain")
