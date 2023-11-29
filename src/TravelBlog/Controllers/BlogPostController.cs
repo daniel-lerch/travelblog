@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using MimeKit;
-using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
@@ -24,20 +20,18 @@ namespace TravelBlog.Controllers;
 [Route("~/post/{id?}/{action=Index}")]
 public class BlogPostController : Controller
 {
-    private readonly IOptions<SiteOptions> siteOptions;
-    private readonly IOptions<MailingOptions> mailingOptions;
     private readonly DatabaseContext database;
     private readonly EmailDeliveryService deliveryService;
+    private readonly MimeMessageCreationService mimeMessageCreation;
     private readonly AuthenticationService authentication;
     private readonly MarkdownService markdown;
 
-    public BlogPostController(IOptions<SiteOptions> siteOptions, IOptions<MailingOptions> mailingOptions, DatabaseContext database,
-        EmailDeliveryService deliveryService, AuthenticationService authentication, MarkdownService markdown)
+    public BlogPostController(DatabaseContext database, EmailDeliveryService deliveryService,
+               MimeMessageCreationService mimeMessageCreation, AuthenticationService authentication, MarkdownService markdown)
     {
-        this.siteOptions = siteOptions;
-        this.mailingOptions = mailingOptions;
         this.database = database;
         this.deliveryService = deliveryService;
+        this.mimeMessageCreation = mimeMessageCreation;
         this.authentication = authentication;
         this.markdown = markdown;
     }
@@ -142,19 +136,6 @@ public class BlogPostController : Controller
         return Redirect("~/post/" + post.Id);
     }
 
-    [HttpPost("~/post/create")]
-    [Authorize(Roles = Constants.AdminRole)]
-    public async Task<IActionResult> Create(string title, string? content, bool listed)
-    {
-        var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: DateTime.Now, modifyTime: default, listed);
-        database.BlogPosts.Add(post);
-        await database.SaveChangesAsync();
-
-        await NotifySubscribers(post);
-
-        return Redirect("~/post/" + post.Id);
-    }
-
     [HttpGet]
     [Authorize(Roles = Constants.AdminRole)]
     public async Task<IActionResult> Edit(int id)
@@ -185,7 +166,7 @@ public class BlogPostController : Controller
 
     [HttpPost]
     [Authorize(Roles = Constants.AdminRole)]
-    public async Task<IActionResult> Publish(int id, string title, string? content, bool listed)
+    public async Task<IActionResult> Publish(int id, string title, string? content, bool listed, string? preview)
     {
         BlogPost? post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
         if (post is null)
@@ -198,54 +179,22 @@ public class BlogPostController : Controller
         post.Listed = listed;
         await database.SaveChangesAsync();
 
-        await NotifySubscribers(post);
+        await NotifySubscribers(post, preview ?? string.Empty);
 
         return Redirect("~/post/" + id);
     }
 
-    private async Task NotifySubscribers(BlogPost post)
+    private async Task NotifySubscribers(BlogPost post, string preview)
     {
         List<Subscriber> subscribers = await database.Subscribers
             .Where(s => s.MailAddress != null && s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
 
-        string htmlTemplate = LoadHtmlTemplate();
-
         await deliveryService.Enqueue(subscribers.Select(subscriber =>
         {
-            string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={subscriber.Token}");
-            string unsubscribeUrl = Url.ContentLink("~/unsubscribe?token=" + subscriber.Token);
-            string message = $"Hey {subscriber.GivenName},\r\n" +
-                $"es wurde etwas neues auf {siteOptions.Value.BlogName} gepostet:\r\n" +
-                $"{postUrl}\r\n\r\n" +
-                $"Du kannst dich von diesem Blog jederzeit hier abmelden: {unsubscribeUrl}";
-
-            string htmlBody = htmlTemplate
-                .Replace("${POST_TITLE}", post.Title)
-                .Replace("${POST_HTML_PREVIEW}", post.Content)
-                .Replace("${POST_URL}", postUrl)
-                .Replace("${BLOG_NAME}", siteOptions.Value.BlogName)
-                .Replace("${UNSUBCRIBE_URL}", unsubscribeUrl);
-
-            MimeMessage mimeMessage = new();
-            mimeMessage.From.Add(new MailboxAddress(mailingOptions.Value.SenderName, mailingOptions.Value.SenderAddress));
-            mimeMessage.To.Add(new MailboxAddress(subscriber.GetName(), subscriber.MailAddress));
-            mimeMessage.ReplyTo.Add(new MailboxAddress(mailingOptions.Value.AuthorName, mailingOptions.Value.AuthorAddress));
-            mimeMessage.Subject = "Neuer Post";
-            mimeMessage.Body = new MultipartAlternative
-            {
-                new TextPart("plain") { Text = message },
-                new TextPart("html") { Text = htmlBody }
-            };
+            MimeMessage mimeMessage =
+                mimeMessageCreation.CreatePostNotification(post, subscriber, preview, Url);
 
             return (subscriber.MailAddress!, mimeMessage);
         }), post.Id);
-    }
-
-    private static string LoadHtmlTemplate()
-    {
-        using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TravelBlog.Resources.post.html")
-            ?? throw new ApplicationException("Could not load resource post.html");
-        using StreamReader reader = new(stream);
-        return reader.ReadToEnd();
     }
 }

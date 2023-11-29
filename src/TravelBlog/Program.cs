@@ -51,6 +51,7 @@ public class Program
         builder.Services.AddScoped<EmailDeliveryService>();
 
         builder.Services.AddTransient<SubscriberService>();
+        builder.Services.AddTransient<MimeMessageCreationService>();
 
         if (!builder.Environment.IsDevelopment())
         {

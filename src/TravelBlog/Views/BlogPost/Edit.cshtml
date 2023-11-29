@@ -25,10 +25,11 @@
         <input type="checkbox" class="form-check-input" id="listed" name="listed" checked="@Model.Post.Listed" value="true" />
         <label for="listed" class="form-check-label">Post in der Übersicht anzeigen</label>
     </div>
+    <textarea class="d-none" id="preview" name="preview" aria-hidden="true"></textarea>
     @if (Model.Post.PublishTime == default)
     {
         <button type="submit" formaction="~/post/@Model.Post.Id/edit" class="btn btn-secondary">Entwurf speichern</button>
-        <button type="button" onclick="if ($('#dangerous-form').get(0).reportValidity()) { $('#confirm-submit').modal() }" class="btn btn-primary">Posten</button>
+        <button type="button" class="btn btn-primary" id="publish">Posten</button>
     }
     else
     {
@@ -36,4 +37,48 @@
     }
 </form>
 
-<partial name="_PublishModal.cshtml" />
+<div class="modal fade" id="confirm-submit" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Post veröffentlichen?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault()">
+                    <label for="modal-preview">Vorschautext für E-Mail</label>
+                    <div class="form-group">
+                        <textarea class="form-control" id="modal-preview" rows="10"></textarea>
+                    </div>
+                </form>
+
+                Sobald du auf Veröffentlichen klickst, beginnt TravelBlog, E-Mails an deine Abbonenten zu verschicken. Den Post kannst du danach zwar noch bearbeiten, aber nicht mehr löschen!
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="$('#dangerous-form').submit()" id="modal-submit">Veröffentlichen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#publish').click(function (event) {
+            if ($('#dangerous-form').get(0).reportValidity()) {
+                const content = $('#content').val()
+                const firstParagraphIdx = content.indexOf('\n\n')
+                const firstParagraph = firstParagraphIdx === -1 ? content : content.substring(0, firstParagraphIdx)
+                $('#modal-preview').val(firstParagraph)
+                $('#confirm-submit').modal()
+            }
+        });
+
+        $('#modal-submit').click(function (event) {
+            $('#preview').val($('#modal-preview').val())
+            $('#dangerous-form').submit()
+        })
+    </script>
+}
