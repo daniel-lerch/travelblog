@@ -5,7 +5,7 @@
   <mj-body background-color="#eee">
     <mj-section>
     </mj-section>
-    <mj-section padding="20px 0 10px 0" background-color="#fff">
+    <mj-section padding="30px 0 10px 0" background-color="#fff">
       <mj-column>
         <mj-text font-size="32px" color="#348eda">
           ${POST_TITLE}
@@ -14,20 +14,20 @@
     </mj-section>
     <mj-section padding="10px 0 10px 0" background-color="#fff">
       <mj-column>
-        <mj-text>
+        <mj-text font-size="18px">
           Hallo ${GIVEN_NAME},
         </mj-text>
-        <mj-text>
+        <mj-text padding-top="0">
           ich habe einen neuen Post auf meinem Blog veröffentlicht.
         </mj-text>
-        <mj-text>
-          Liebe Grüße<br />${AUTHOR_NAME}
+        <mj-text padding-top="0">
+          &ndash; ${AUTHOR_NAME}
         </mj-text>
       </mj-column>
     </mj-section>
-    <mj-section padding="10px 0 10px 0" background-color="#fff">
+    <mj-section padding="20px 0 0 0" background-color="#fff">
       <mj-column>
-        <mj-text>
+        <mj-text font-size="14px">
           ${POST_PREVIEW}
         </mj-text>
       </mj-column>
