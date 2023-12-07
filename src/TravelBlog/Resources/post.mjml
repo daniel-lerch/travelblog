@@ -40,7 +40,7 @@
     <mj-section padding="30px 0px 0px 0px">
       <mj-column>
         <mj-text color="#777">
-          ${BLOG_NAME} | <a href="${UNSUBCRIBE_URL}">Abmelden</a>
+          ${BLOG_NAME} | <a href="${UNSUBSCRIBE_URL}">Abmelden</a>
         </mj-text>
       </mj-column>
     </mj-section>

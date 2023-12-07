@@ -8,4 +8,4 @@ ${AUTHOR_NAME}
 
 
 Falls du keine E-Mails mehr von meinem Blog erhalten möchtest, kannst du dich über folgenden Link abmelden:
-${UNSUBCRIBE_URL}
+${UNSUBSCRIBE_URL}
