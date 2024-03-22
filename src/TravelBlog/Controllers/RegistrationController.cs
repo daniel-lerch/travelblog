@@ -28,6 +28,9 @@ public class RegistrationController : Controller
         if (!ModelState.IsValid)
             return View("Index", new RegistrationViewModel(mailAddress, givenName, familyName, "Deine Angaben sind unvollständig oder ungültig!"));
 
+        // Avoid duplicate registrations with different casing or Gmail domains
+        mailAddress = mailAddress.ToLowerInvariant().Replace("@googlemail.com", "@gmail.com");
+
         if (await subscriberService.Register(mailAddress, givenName, familyName))
             return View("Success", new RegistrationViewModel(mailAddress, givenName, familyName));
         else
