@@ -9,7 +9,7 @@ RUN npm install
 COPY frontend ./
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS backend
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS backend
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
@@ -25,7 +25,7 @@ COPY . ./
 RUN dotnet publish --no-restore -c Release -o /app/out src/TravelBlog/TravelBlog.csproj
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=backend /app/out .
 COPY --from=frontend /app/dist wwwroot/

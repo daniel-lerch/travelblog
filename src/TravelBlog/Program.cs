@@ -9,11 +9,10 @@ using System;
 using System.Globalization;
 using System.IO;
 using TravelBlog.Database;
-using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Hosting;
 using TravelBlog.Services;
-using TravelBlog.Services.LightJobManager;
+using TravelBlog.Utilities;
 
 namespace TravelBlog;
 
@@ -43,16 +42,17 @@ public class Program
 			options.RequestCultureProviders = new[] { new AcceptLanguageHeaderRequestCultureProvider() };
 		});
 
-		builder.Services.AddSingleton<ThumbnailService>();
-		builder.Services.AddSingleton<MarkdownService>();
-		builder.Services.AddDbContext<DatabaseContext>();
-		builder.Services.AddScoped<AuthenticationService>();
-		builder.Services.AddScoped<MailingService>();
+        builder.Services.AddSingleton<ThumbnailService>();
+        builder.Services.AddSingleton<MarkdownService>();
+        builder.Services.AddDbContext<DatabaseContext>();
+        builder.Services.AddScoped<AuthenticationService>();
 
-		builder.Services.AddSingleton<JobSchedulerService<MailJob, MailJobContext>>();
-		builder.Services.AddHostedService(provider => provider.GetRequiredService<JobSchedulerService<MailJob, MailJobContext>>());
+        builder.Services.AddSingleton<JobQueue<EmailDeliveryJobController>>();
+        builder.Services.AddHostedService(serviceProvider => serviceProvider.GetRequiredService<JobQueue<EmailDeliveryJobController>>());
+        builder.Services.AddScoped<EmailDeliveryService>();
 
-		builder.Services.AddTransient<SubscriberService>();
+        builder.Services.AddTransient<SubscriberService>();
+        builder.Services.AddTransient<MimeMessageCreationService>();
 
 		if (builder.Environment.IsDevelopment())
 		{
@@ -116,7 +116,7 @@ public class Program
 		app.UseCookiePolicy();
 		app.UseAuthentication();
 		app.UseAuthorization();
-		app.UseEndpoints(endpoints => endpoints.MapControllers());
+		app.MapControllers();
 		app.UseSpa(spa => spa.UseVueSpaFileProvider());
 		app.Run();
 	}

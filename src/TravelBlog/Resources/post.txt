@@ -1,0 +1,11 @@
+Hallo ${GIVEN_NAME},
+
+ich habe einen neuen Post auf meinem Blog veröffentlicht:
+${POST_URL}
+
+Liebe Grüße
+${AUTHOR_NAME}
+
+
+Falls du keine E-Mails mehr von meinem Blog erhalten möchtest, kannst du dich über folgenden Link abmelden:
+${UNSUBSCRIBE_URL}

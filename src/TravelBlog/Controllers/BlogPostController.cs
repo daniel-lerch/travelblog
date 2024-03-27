@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using TravelBlog.Configuration;
+using MimeKit;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
 using TravelBlog.Models;
 using TravelBlog.Services;
-using TravelBlog.Services.LightJobManager;
 using UAParser;
 
 namespace TravelBlog.Controllers;
@@ -22,18 +20,18 @@ namespace TravelBlog.Controllers;
 [Route("~/post/{id?}/{action=Index}")]
 public class BlogPostController : Controller
 {
-    private readonly IOptions<SiteOptions> options;
     private readonly DatabaseContext database;
-    private readonly JobSchedulerService<MailJob, MailJobContext> scheduler;
+    private readonly EmailDeliveryService deliveryService;
+    private readonly MimeMessageCreationService mimeMessageCreation;
     private readonly AuthenticationService authentication;
     private readonly MarkdownService markdown;
 
-    public BlogPostController(IOptions<SiteOptions> options, DatabaseContext database,
-        JobSchedulerService<MailJob, MailJobContext> scheduler, AuthenticationService authentication, MarkdownService markdown)
+    public BlogPostController(DatabaseContext database, EmailDeliveryService deliveryService,
+               MimeMessageCreationService mimeMessageCreation, AuthenticationService authentication, MarkdownService markdown)
     {
-        this.options = options;
         this.database = database;
-        this.scheduler = scheduler;
+        this.deliveryService = deliveryService;
+        this.mimeMessageCreation = mimeMessageCreation;
         this.authentication = authentication;
         this.markdown = markdown;
     }
@@ -138,19 +136,6 @@ public class BlogPostController : Controller
         return Redirect("~/post/" + post.Id);
     }
 
-    [HttpPost("~/post/create")]
-    [Authorize(Roles = Constants.AdminRole)]
-    public async Task<IActionResult> Create(string title, string? content, bool listed)
-    {
-        var post = new BlogPost(id: default, title, content ?? string.Empty, publishTime: DateTime.Now, modifyTime: default, listed);
-        database.BlogPosts.Add(post);
-        await database.SaveChangesAsync();
-
-        await NotifySubscribers(post);
-
-        return Redirect("~/post/" + post.Id);
-    }
-
     [HttpGet]
     [Authorize(Roles = Constants.AdminRole)]
     public async Task<IActionResult> Edit(int id)
@@ -181,7 +166,7 @@ public class BlogPostController : Controller
 
     [HttpPost]
     [Authorize(Roles = Constants.AdminRole)]
-    public async Task<IActionResult> Publish(int id, string title, string? content, bool listed)
+    public async Task<IActionResult> Publish(int id, string title, string? content, bool listed, string? preview)
     {
         BlogPost? post = await database.BlogPosts.SingleOrDefaultAsync(p => p.Id == id);
         if (post is null)
@@ -194,25 +179,22 @@ public class BlogPostController : Controller
         post.Listed = listed;
         await database.SaveChangesAsync();
 
-        await NotifySubscribers(post);
+        await NotifySubscribers(post, preview ?? string.Empty);
 
         return Redirect("~/post/" + id);
     }
 
-    private async Task NotifySubscribers(BlogPost post)
+    private async Task NotifySubscribers(BlogPost post, string preview)
     {
         List<Subscriber> subscribers = await database.Subscribers
-            .Where(s => s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
+            .Where(s => s.MailAddress != null && s.ConfirmationTime != default && s.DeletionTime == default).ToListAsync();
 
-        await scheduler.Enqueue(subscribers.Select(s =>
+        await deliveryService.Enqueue(subscribers.Select(subscriber =>
         {
-            string postUrl = Url.ContentLink($"~/post/{post.Id}/auth?token={s.Token}");
-            string unsubscribeUrl = Url.ContentLink("~/unsubscribe?token=" + s.Token);
-            string message = $"Hey {s.GivenName},\r\n" +
-                $"es wurde etwas neues auf {options.Value.BlogName} gepostet:\r\n" +
-                $"{postUrl}\r\n\r\n" +
-                $"Du kannst dich von diesem Blog jederzeit hier abmelden: {unsubscribeUrl}";
-            return new MailJob(id: default, s.Id, subject: "Neuer Post", message);
-        }));
+            MimeMessage mimeMessage =
+                mimeMessageCreation.CreatePostNotification(post, subscriber, preview, Url);
+
+            return (subscriber.MailAddress!, mimeMessage);
+        }), post.Id);
     }
 }

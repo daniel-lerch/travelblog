@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using TravelBlog.Configuration;
 using TravelBlog.Database;
 using TravelBlog.Database.Entities;
 using TravelBlog.Extensions;
-using TravelBlog.Services.LightJobManager;
 using Wiry.Base32;
 
 namespace TravelBlog.Services;
@@ -16,14 +16,16 @@ namespace TravelBlog.Services;
 public class SubscriberService
 {
     private readonly IOptions<SiteOptions> siteOptions;
+    private readonly IOptions<MailingOptions> mailingOptions;
     private readonly DatabaseContext database;
-    private readonly JobSchedulerService<MailJob, MailJobContext> mailScheduler;
+    private readonly EmailDeliveryService deliveryService;
 
-    public SubscriberService(IOptions<SiteOptions> siteOptions, DatabaseContext database, JobSchedulerService<MailJob, MailJobContext> mailScheduler)
+    public SubscriberService(IOptions<SiteOptions> siteOptions, IOptions<MailingOptions> mailingOptions, DatabaseContext database, EmailDeliveryService deliveryService)
     {
         this.siteOptions = siteOptions;
+        this.mailingOptions = mailingOptions;
         this.database = database;
-        this.mailScheduler = mailScheduler;
+        this.deliveryService = deliveryService;
     }
 
     public async ValueTask<bool> Register(string mailAddress, string givenName, string familyName)
@@ -43,7 +45,7 @@ public class SubscriberService
     public async ValueTask<bool> Confirm(int id, IUrlHelper urlHelper)
     {
         Subscriber? subscriber = await database.Subscribers.SingleOrDefaultAsync(s => s.Id == id);
-        if (subscriber == null || subscriber.ConfirmationTime != default || subscriber.DeletionTime != default)
+        if (subscriber == null || subscriber.MailAddress == null || subscriber.ConfirmationTime != default || subscriber.DeletionTime != default)
             return false;
         subscriber.ConfirmationTime = DateTime.Now;
         await database.SaveChangesAsync();
@@ -60,7 +62,14 @@ public class SubscriberService
 
         mail += $"\r\nDu kannst dich von diesem Blog jederzeit hier abmelden: {urlHelper.ContentLink("~/unsubscribe?token=" + subscriber.Token)}";
 
-        await mailScheduler.Enqueue(new MailJob(default, subscriber.Id, subject: "Erfolgreich registriert", mail));
+        MimeMessage message = new();
+        message.From.Add(new MailboxAddress(mailingOptions.Value.SenderName, mailingOptions.Value.SenderAddress));
+        message.To.Add(new MailboxAddress(subscriber.GetName(), subscriber.MailAddress));
+        message.ReplyTo.Add(new MailboxAddress(mailingOptions.Value.AuthorName, mailingOptions.Value.AuthorAddress));
+        message.Subject = "Erfolgreich registriert";
+        message.Body = new TextPart("plain") { Text = mail };
+        
+        await deliveryService.Enqueue(subscriber.MailAddress, message, null);
 
         return true;
     }

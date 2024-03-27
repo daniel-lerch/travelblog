@@ -13,7 +13,8 @@ public class DatabaseContext : DbContext
     public DbSet<Subscriber> Subscribers => Set<Subscriber>();
     public DbSet<BlogPost> BlogPosts => Set<BlogPost>();
     public DbSet<PostRead> PostReads => Set<PostRead>();
-    public DbSet<MailJob> MailJobs => Set<MailJob>();
+    public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
+    public DbSet<SentEmail> SentEmails => Set<SentEmail>();
 
     public DatabaseContext(IOptions<DatabaseOptions> options)
     {
@@ -47,8 +48,14 @@ public class DatabaseContext : DbContext
         postRead.HasOne(r => r.Post).WithMany(p => p!.Reads).HasForeignKey(r => r.PostId);
         postRead.HasOne(r => r.Subscriber).WithMany(s => s!.Reads).HasForeignKey(r => r.SubscriberId);
 
-        var mailJob = modelBuilder.Entity<MailJob>();
-        mailJob.HasKey(t => t.Id);
-        mailJob.HasOne(t => t.Subscriber).WithMany().HasForeignKey(t => t.SubscriberId);
+        var outboxEmail = modelBuilder.Entity<OutboxEmail>();
+        outboxEmail.HasKey(e => e.Id);
+        outboxEmail.HasOne(e => e.BlogPost).WithMany().HasForeignKey(e => e.BlogPostId);
+
+        var sentEmail = modelBuilder.Entity<SentEmail>();
+        sentEmail.HasKey(e => e.Id);
+        sentEmail.HasOne(e => e.BlogPost).WithMany().HasForeignKey(e => e.BlogPostId);
+        sentEmail.HasIndex(e => e.DeliveryTime);
+        sentEmail.Property(e => e.Id).ValueGeneratedNever();
     }
 }
