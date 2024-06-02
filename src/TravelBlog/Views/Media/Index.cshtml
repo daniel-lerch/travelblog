@@ -32,7 +32,9 @@
 			<div class="center-image">
 				<img src="@file.ThumbnailUrl?size=400" />
 			</div>
-			<figcaption class="figure-caption mt-1 mx-1">@file.Name</figcaption>
+			<figcaption class="figure-caption mt-1 mx-1">
+				<a href="@file.DownloadUrl">@file.Name</a>
+			</figcaption>
 			<button role="button" class="btn d-none clipboard">📋</button>
 			<button role="button" class="btn d-none delete">🗑️</button>
 		</figure>
